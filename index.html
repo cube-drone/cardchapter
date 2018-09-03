@@ -251,22 +251,18 @@
         }
 
         .above{
-            top: -734px;
             top: calc(0px - var(--card-height) - var(--card-height-pad));
         }
 
         .left{
-            left: -434px;
             left: calc(0px - var(--card-width) - var(--card-width-pad));
         }
 
         .right{
-            right: -434px;
             right: calc(0px - var(--card-width) - var(--card-width-pad));
         }
 
         .below{
-            bottom: -734px;
             bottom: calc(0px - var(--card-height) - var(--card-height-pad));
         }
 
@@ -331,11 +327,11 @@
 
         @media only screen and (min-height: 800px){
             #up-button{
-                top: calc(50% - calc(var(--card-width) - 10px));
+                top: calc(50% - calc(var(--card-height) / 2  + 10px));
             }
 
             #down-button{
-                bottom: calc(50% - calc(var(--card-width) - 10px));
+                bottom: calc(50% - calc(var(--card-height) / 2 + 10px));
             }
         }
 
@@ -755,8 +751,8 @@ var DURATION = "fast";
 var EASING = "easeInOutQuart";
 const XPAD = parseInt(window.getComputedStyle(document.documentElement).getPropertyValue(`--card-width-pad`), 10);
 const YPAD = parseInt(window.getComputedStyle(document.documentElement).getPropertyValue(`--card-height-pad`), 10);
-const WIDTH = parseInt(window.getComputedStyle(document.documentElement).getPropertyValue(`--card-width`), 10);
-const HEIGHT = parseInt(window.getComputedStyle(document.documentElement).getPropertyValue(`--card-height`), 10);
+var WIDTH = parseInt(window.getComputedStyle(document.documentElement).getPropertyValue(`--card-width`), 10);
+var HEIGHT = parseInt(window.getComputedStyle(document.documentElement).getPropertyValue(`--card-height`), 10);
 const n = "";
 const converter = new showdown.Converter();
 
@@ -1555,6 +1551,12 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
     if(node.data.object.toc != null){
         setToc(node.data.object.toc);
     }
+    if(node.data.object.width != null){
+        setWidth(width);
+    }
+    if(node.data.object.height != null){
+        setHeight(node.data.object.height);
+    }
 
     return;
 };
@@ -1637,6 +1639,12 @@ const changeNode = debounce(async ({node})=>{
     }
     if(data.toc != null){
         setToc(data.toc);
+    }
+    if(data.height != null){
+        setHeight(data.height);
+    }
+    if(data.width != null){
+        setWidth(data.width);
     }
 
     generateTableOfContents(window.tree);
@@ -1866,6 +1874,18 @@ const setToc = (toc) => {
     generateTableOfContents(window.tree);
 };
 
+const setHeight = (h) => {
+    h = Math.min(Math.max(200, parseInt(h, 10)), window.innerHeight - 10);
+    HEIGHT = h;
+    $(":root").get(0).style.setProperty('--card-height', `${h}px`);
+};
+
+const setWidth = (w) => {
+    w = Math.min(Math.max(200, parseInt(w, 10)), window.innerWidth - 10);
+    WIDTH = w;
+    $(":root").get(0).style.setProperty('--card-width', `${w}px`);
+};
+
 /* This function runs on application boot! */
 const main = async () => {
     //console.log(quine());
@@ -1954,6 +1974,8 @@ const main = async () => {
         setTitle(root.data.object.title || "CardChapter");
         setTheme(root.data.object.theme || "default");
         setToc(root.data.object.toc || "zigzag");
+        setHeight(root.data.object.height || 714);
+        setWidth(root.data.object.width || 414);
     }
 
     $("#up-button").click(goAbove);
