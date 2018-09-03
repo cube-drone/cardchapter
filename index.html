@@ -1881,7 +1881,11 @@ const setHeight = (h) => {
 };
 
 const setWidth = (w) => {
-    w = Math.min(Math.max(200, parseInt(w, 10)), window.innerWidth - 10);
+    let maxWidth = window.innerWidth - 75;
+    if(window.innerWidth > 1000){
+        maxWidth = window.innerWidth - 600;
+    }
+    w = Math.min(Math.max(200, parseInt(w, 10)), maxWidth);
     WIDTH = w;
     $(":root").get(0).style.setProperty('--card-width', `${w}px`);
 };
