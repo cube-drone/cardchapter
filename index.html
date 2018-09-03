@@ -755,7 +755,9 @@ var EASING = "easeInOutQuart";
 const XPAD = parseInt(window.getComputedStyle(document.documentElement).getPropertyValue(`--card-width-pad`), 10);
 const YPAD = parseInt(window.getComputedStyle(document.documentElement).getPropertyValue(`--card-height-pad`), 10);
 var WIDTH = parseInt(window.getComputedStyle(document.documentElement).getPropertyValue(`--card-width`), 10);
+const DEFAULT_WIDTH = WIDTH;
 var HEIGHT = parseInt(window.getComputedStyle(document.documentElement).getPropertyValue(`--card-height`), 10);
+const DEFAULT_HEIGHT = HEIGHT;
 const n = "";
 const converter = new showdown.Converter();
 
@@ -1705,6 +1707,8 @@ const revertAll = async () => {
     await setTree({id: "0/0", bounce:false});
 
     generateStorageSpaceEstimate();
+    setHeight();
+    setWidth();
 };
 
 const deleteNode = async () => {
@@ -1878,19 +1882,31 @@ const setToc = (toc) => {
 };
 
 const setHeight = (h) => {
-    h = Math.min(Math.max(200, parseInt(h, 10)), window.innerHeight - 80);
-    HEIGHT = h;
-    $(":root").get(0).style.setProperty('--card-height', `${h}px`);
+    if(h == null){
+        HEIGHT = DEFAULT_HEIGHT;
+        $(":root").get(0).style.setProperty('--card-height', `${DEFAULT_HEIGHT}px`);
+    }
+    else{
+        h = Math.min(Math.max(200, parseInt(h, 10)), window.innerHeight - 80);
+        HEIGHT = h;
+        $(":root").get(0).style.setProperty('--card-height', `${h}px`);
+    }
 };
 
 const setWidth = (w) => {
-    let maxWidth = window.innerWidth - 75;
-    if(window.innerWidth > 1000){
-        maxWidth = window.innerWidth - 600;
+    if(w == null){
+        WIDTH = DEFAULT_WIDTH;
+        $(":root").get(0).style.setProperty('--card-width', `${DEFAULT_WIDTH}px`);
     }
-    w = Math.min(Math.max(200, parseInt(w, 10)), maxWidth);
-    WIDTH = w;
-    $(":root").get(0).style.setProperty('--card-width', `${w}px`);
+    else {
+        let maxWidth = window.innerWidth - 75;
+        if(window.innerWidth > 1000){
+            maxWidth = window.innerWidth - 600;
+        }
+        w = Math.min(Math.max(200, parseInt(w, 10)), maxWidth);
+        WIDTH = w;
+        $(":root").get(0).style.setProperty('--card-width', `${w}px`);
+    }
 };
 
 /* This function runs on application boot! */
