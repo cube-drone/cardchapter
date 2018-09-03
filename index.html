@@ -239,10 +239,8 @@
         }
 
         .center{
-            background-color: lightblue;
             z-index: 5;
 
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
         }
 
         .above, .left, .right, .below{
@@ -264,6 +262,11 @@
 
         .below{
             bottom: calc(0px - var(--card-height) - var(--card-height-pad));
+        }
+
+        .card-content{
+            background-color: lightblue;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
         }
 
         .hex-btn {
@@ -327,11 +330,11 @@
 
         @media only screen and (min-height: 800px){
             #up-button{
-                top: calc(50% - calc(var(--card-height) / 2  + 10px));
+                top: calc(50% - calc(var(--card-height) / 2  + 40px));
             }
 
             #down-button{
-                bottom: calc(50% - calc(var(--card-height) / 2 + 10px));
+                bottom: calc(50% - calc(var(--card-height) / 2 + 40px));
             }
         }
 
@@ -1552,7 +1555,7 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
         setToc(node.data.object.toc);
     }
     if(node.data.object.width != null){
-        setWidth(width);
+        setWidth(node.data.object.width);
     }
     if(node.data.object.height != null){
         setHeight(node.data.object.height);
@@ -1875,7 +1878,7 @@ const setToc = (toc) => {
 };
 
 const setHeight = (h) => {
-    h = Math.min(Math.max(200, parseInt(h, 10)), window.innerHeight - 10);
+    h = Math.min(Math.max(200, parseInt(h, 10)), window.innerHeight - 80);
     HEIGHT = h;
     $(":root").get(0).style.setProperty('--card-height', `${h}px`);
 };
