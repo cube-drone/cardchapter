@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -760,6 +760,8 @@ var HEIGHT = parseInt(window.getComputedStyle(document.documentElement).getPrope
 const DEFAULT_HEIGHT = HEIGHT;
 const n = "";
 const converter = new showdown.Converter();
+
+let defaultNodeProperties = {};
 
 
 const generateStorageSpaceEstimate = async () => {
