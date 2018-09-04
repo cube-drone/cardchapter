@@ -1272,16 +1272,17 @@ const onTreeChange = async () => {
         if(rootData != {} && rootData != null){
             defaultNodeProperties = JSON.parse(JSON.stringify(rootData));
 
-            // The following properties shouldn't have document-level defaults
-            delete defaultNodeProperties.depth;
-            delete defaultNodeProperties.traversal;
-            delete defaultNodeProperties.card-title;
-            delete defaultNodeProperties.id;
         }
     }
     catch (err){
         console.warn(err);
     }
+
+    // The following properties shouldn't have document-level defaults
+    delete defaultNodeProperties.depth;
+    delete defaultNodeProperties.traversal;
+    delete defaultNodeProperties['card-title'];
+    delete defaultNodeProperties.id;
 
     console.log("Default Properties", defaultNodeProperties);
 
