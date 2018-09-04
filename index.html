@@ -2029,6 +2029,8 @@ const main = async () => {
     let lastUpdate = $("#last-update").text();
     console.warn(lastUpdate);
     $("#last-updated").html(`Last updated: ${luxon.DateTime.fromISO(lastUpdate).toFormat('ff')}`);
+
+    window.onresize = () => {setHeight(HEIGHT); setWidth(WIDTH)};
 };
 
 $(main);
