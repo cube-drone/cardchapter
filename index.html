@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -138,7 +138,7 @@
             font-family: Inconsolata, monospace;
         }
 
-        #toc{
+        #table-of-contents{
             direction: rtl;
             height: calc(100% - 160px);
             font-size: 75%;
@@ -147,24 +147,24 @@
             color: #AAA;
         }
 
-        #toc li{
+        #table-of-contents li{
             margin-left: 10px;
             direction: ltr;
         }
 
-        #toc a{
+        #table-of-contents a{
             text-decoration: none;
         }
 
-        #toc ul{
+        #table-of-contents ul{
             list-style-type: none;
         }
 
-        #toc a{
+        #table-of-contents a{
             color: #AAA;
         }
 
-        #toc .selected {
+        #table-of-contents .selected {
             color: white;
         }
 
@@ -586,6 +586,10 @@
             color: white;
         }
 
+        .clear{
+            background-color: transparent;
+        }
+
         .parallax{
             background-attachment: fixed;
             background-position: center;
@@ -895,7 +899,7 @@ const loadPage = () => {
                 <div id="last-updated"> Last updated 30 days ago</div>
             </div>
 
-            <nav id="toc">
+            <nav id="table-of-contents">
             </nav>
         </div>
         <div id="right-wall">
@@ -1013,19 +1017,27 @@ The full AGPLv3 license is available here: https://www.gnu.org/licenses/agpl-3.0
 `;
 };
 
-const convertContentIntoData = (content) => {
+const convertContentIntoData = ({content, baseObject}) => {
+    if(baseObject == null){
+        baseObject = {};
+    }
+    else{
+        //copy baseObject
+        baseObject = JSON.parse(JSON.stringify(baseObject));
+    }
+
     if(content == null){
-        return {};
+        return baseObject;
     }
     if(content.indexOf('```') === 0){
         var data = content.slice(3);
         if(data.indexOf('```') > -1){
             var serialized = data.slice(0, data.indexOf('```'));
             try{
-                return JSON.parse(serialized);
+                return Object.assign(baseObject, JSON.parse(serialized));
             } catch (err) {
                 try{
-                    return jsyaml.load(serialized);
+                    return Object.assign(baseObject, jsyaml.load(serialized));
                 }
                 catch(err){
                     console.warn(serialized);
@@ -1036,17 +1048,19 @@ const convertContentIntoData = (content) => {
         } else {
             console.warn("found opening tag but not closing tag");
             console.warn(node);
-            return {};
+            return baseObject;
         }
     }
     return {}
 };
 
-const convertContentIntoHtml = ({id: id, content: content}) => {
+const convertContentIntoHtml = ({id: id, content: content, data: data}) => {
 
     content = scruptToScript(content);
 
-    let data = convertContentIntoData(content);
+    if(data == null){
+        data = {};
+    }
 
     if(content == null){
         console.error("content is null");
@@ -1214,14 +1228,45 @@ const updateScriptForNode = ({id, html}) => {
 };
 
 
-const processTree = async (tree) => {
+const onTreeChange = async () => {
     /*
         a tree of data exists, but we need to go through the tree and:
             - create any HTML nodes that need to be created
             - find any special IDs
             - update the table of contents (when that's a thing);
     */
+    let tree = window.tree;
     let promises = [];
+
+    // do a special op on the root node
+    let root = tree.children[0];
+
+    defaultNodeProperties = {};
+
+    try{
+        let content = root.data.content;
+        let savedContent = await localforage.getItem("0/0");
+        if(savedContent != null){
+            content = savedContent;
+        }
+
+        let rootData = convertContentIntoData({content: content, baseObject: {}});
+        if(rootData != {} && rootData != null){
+            defaultNodeProperties = JSON.parse(JSON.stringify(rootData));
+
+            // The following properties shouldn't have document-level defaults
+            delete defaultNodeProperties.depth;
+            delete defaultNodeProperties.traversal;
+            delete defaultNodeProperties.card-title;
+            delete defaultNodeProperties.id;
+        }
+    }
+    catch (err){
+        console.warn(err);
+    }
+
+    console.log("Default Properties", defaultNodeProperties);
+
     tree.traverseDown(function(node){
         let that = this;
         promises.push(localforage.getItem(node.id)
@@ -1229,8 +1274,10 @@ const processTree = async (tree) => {
                 if(savedContent != null && savedContent !== that.data.content){
                     that.data.content = savedContent;
                 }
-                that.data.object = convertContentIntoData(that.data.content);
-                let nodeHtml = convertContentIntoHtml({id: node.id, content: that.data.content});
+                let nodeData = convertContentIntoData({content: that.data.content, baseObject: defaultNodeProperties});
+                let nodeHtml = convertContentIntoHtml({id: node.id, content: that.data.content, data: nodeData});
+
+                that.data.object = nodeData;
                 that.data.html = removeScriptAndStyle(nodeHtml);
                 if(that.data.object.id != null){
                     that.data.fakeId = that.data.object.id;
@@ -1241,12 +1288,13 @@ const processTree = async (tree) => {
             })
             .catch((err)=>{
                 console.error(err);
-                that.data.html = convertContentIntoHtml({id: node.id, content: that.data.content});
+                that.data.html = convertContentIntoHtml({id: node.id, content: that.data.content, data: defaultNodeProperties});
             }));
     });
     return Promise.all(promises)
         .then(()=>{
             generateTableOfContents(tree);
+            generateStorageSpaceEstimate();
         });
 };
 
@@ -1264,7 +1312,7 @@ const tagTreeWithOriginalShape = (tree) => {
 
 const generateTableOfContents = (tree) => {
     let toc = [];
-    let traversalAlgorithm = window.toc;
+    let traversalAlgorithm = window.traversal;
 
     const lookAtNode = (node) => {
         if(node.data.object != null && node.data.object.id){
@@ -1300,8 +1348,8 @@ const generateTableOfContents = (tree) => {
             if(node.data.object.depth){
                 depth = node.data.object.depth;
             }
-            if(node.data.object.toc){
-                title = node.data.object.toc;
+            if(node.data.object["card-title"]){
+                title = node.data.object["card-title"];
             }
             toc.push({id: node.data.object.id, depth: depth, title: title});
         }
@@ -1366,9 +1414,9 @@ const generateTableOfContents = (tree) => {
         </h${x.depth+1}>
     </li>`).join("\n");
 
-    $("#toc").html("");
-    $("#toc").append(`<ul>${list}</ul>`);
-    $("#toc").append(`<br/><br/><br/><br/>`);
+    $("#table-of-contents").html("");
+    $("#table-of-contents").append(`<ul>${list}</ul>`);
+    $("#table-of-contents").append(`<br/><br/><br/><br/>`);
 };
 
 
@@ -1382,8 +1430,9 @@ const loadTree = async ({fromDocument} = {}) => {
             children: data,
         };
         let tree = Arboreal.parse(baseObject, 'children');
+        window.tree = tree;
 
-        await processTree(tree);
+        await onTreeChange();
         tagTreeWithOriginalShape(tree);
         return tree;
     }
@@ -1397,8 +1446,9 @@ const loadTree = async ({fromDocument} = {}) => {
             children: JSON.parse(localTree),
         };
         let tree = Arboreal.parse(baseObject, 'children');
+        window.tree = tree;
 
-        await processTree(tree);
+        await onTreeChange();
         return tree;
     }
 };
@@ -1555,8 +1605,8 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
     if(node.data.object.theme != null){
         setTheme(node.data.object.theme);
     }
-    if(node.data.object.toc != null){
-        setToc(node.data.object.toc);
+    if(node.data.object.traversal != null){
+        setTraversal(node.data.object.traversal);
     }
     if(node.data.object.width != null){
         setWidth(node.data.object.width);
@@ -1616,8 +1666,14 @@ const changeNode = debounce(async ({node})=>{
         return;
     }
 
-    let data = convertContentIntoData(markdown);
-    let dirtyHtml = convertContentIntoHtml({id: id, content: markdown});
+    let data = {};
+    if(id === "0/0"){
+        data = convertContentIntoData({content: markdown, baseObject: {}});
+    }
+    else{
+        data = convertContentIntoData({content: markdown, baseObject: defaultNodeProperties});
+    }
+    let dirtyHtml = convertContentIntoHtml({id: id, content: markdown, data: data});
     html = removeScriptAndStyle(dirtyHtml);
 
     // we need to modify the tree, which is our in-memory representation of the data
@@ -1644,8 +1700,8 @@ const changeNode = debounce(async ({node})=>{
     if(data.theme != null){
         setTheme(data.theme);
     }
-    if(data.toc != null){
-        setToc(data.toc);
+    if(data.traversal != null){
+        setTraversal(data.traversal);
     }
     if(data.height != null){
         setHeight(data.height);
@@ -1654,9 +1710,11 @@ const changeNode = debounce(async ({node})=>{
         setWidth(data.width);
     }
 
-    generateTableOfContents(window.tree);
+    /* because the root node affects all child nodes, we have to reprocess the tree if the root changes */
+    if(id === "0/0"){
+        await onTreeChange();
+    }
 
-    generateStorageSpaceEstimate();
 
 }, 50)
 
@@ -1696,8 +1754,6 @@ const revertNode = async () => {
 
         await localforage.setItem(id, null);
     }
-
-    generateStorageSpaceEstimate();
 };
 
 const revertAll = async () => {
@@ -1706,9 +1762,9 @@ const revertAll = async () => {
     let tree = await loadTree({fromDocument: true});
 
     window.tree = tree;
+    await onTreeChange();
     await setTree({id: "0/0", bounce:false});
 
-    generateStorageSpaceEstimate();
     setHeight();
     setWidth();
 };
@@ -1762,7 +1818,7 @@ const deleteNode = async () => {
 
     console.log(window.tree.find(parentId).children);
 
-    await processTree(window.tree);
+    await onTreeChange();
 
     /* stash the entire state of the tree in localstorage */
     await localforage.setItem("tree", convertTreeBackIntoData(window.tree));
@@ -1774,8 +1830,6 @@ const deleteNode = async () => {
     } else {
         goAbove();
     }
-
-    generateStorageSpaceEstimate();
 }
 
 const createSibling = async () => {
@@ -1807,7 +1861,8 @@ const createSibling = async () => {
     let newContent = "## New Node";
     let newNodeId = window.tree.find(parentId).children[window.tree.find(parentId).children.length - 1].id;
     window.tree.find(newNodeId).data.content = newContent;
-    window.tree.find(newNodeId).data.html = convertContentIntoHtml({id: newNodeId, content: newContent});
+    window.tree.find(newNodeId).data.object = {};
+    window.tree.find(newNodeId).data.html = convertContentIntoHtml({id: newNodeId, content: newContent, data: defaultNodeProperties});
     await localforage.setItem(newNodeId, null);
 
     //
@@ -1815,7 +1870,7 @@ const createSibling = async () => {
         window.tree.find(parentId).appendChildren(sibling, "children");
     });
 
-    await processTree(window.tree);
+    await onTreeChange();
     /* stash the entire state of the tree in localstorage */
     await localforage.clear();
     await localforage.setItem("tree", convertTreeBackIntoData(window.tree));
@@ -1823,8 +1878,6 @@ const createSibling = async () => {
     await setTree({id: id});
 
     goRight();
-
-    generateStorageSpaceEstimate();
 };
 
 const createChild = async () => {
@@ -1846,7 +1899,7 @@ const createChild = async () => {
 
     let newContent = "## New Node";
     window.tree.find(id).children[0].data.content = newContent;
-    window.tree.find(id).children[0].data.html = convertContentIntoHtml({id: id+"\0", newContent: newContent});
+    window.tree.find(id).children[0].data.html = convertContentIntoHtml({id: id+"\0", newContent: newContent, data: defaultNodeProperties});
 
     await localforage.setItem(id, null);
 
@@ -1854,7 +1907,7 @@ const createChild = async () => {
         window.tree.find(id).children[0].appendChildren(child, "children");
     });
 
-    await processTree(window.tree);
+    await onTreeChange();
 
     /* stash the entire state of the tree in localstorage */
     await localforage.clear();
@@ -1863,8 +1916,6 @@ const createChild = async () => {
     await setTree({id: id});
 
     goBelow();
-
-    generateStorageSpaceEstimate();
 };
 
 const setTitle = (title) => {
@@ -1878,8 +1929,8 @@ const setTheme = (theme) => {
     $("body").addClass(theme);
 };
 
-const setToc = (toc) => {
-    window.toc = toc;
+const setTraversal = (traversal) => {
+    window.traversal = traversal;
     generateTableOfContents(window.tree);
 };
 
@@ -1945,6 +1996,15 @@ const main = async () => {
     window.tree = tree;
     let root = tree.children[0];
 
+    if(root != null && root.data != null && root.data.object != null){
+        setTitle(root.data.object.title || "CardChapter");
+        setTheme(root.data.object.theme || "default");
+        setTraversal(root.data.object.traversal || "zigzag");
+
+        setHeight(root.data.object.height || 714);
+        setWidth(root.data.object.width || 414);
+    }
+
     /* set up the document */
     const initiate = () => {
         var hash = document.location.hash;
@@ -1995,14 +2055,6 @@ const main = async () => {
         }
     };
 
-    if(root != null && root.data != null && root.data.object != null){
-        setTitle(root.data.object.title || "CardChapter");
-        setTheme(root.data.object.theme || "default");
-        setToc(root.data.object.toc || "zigzag");
-        setHeight(root.data.object.height || 714);
-        setWidth(root.data.object.width || 414);
-    }
-
     $("#up-button").click(goAbove);
     $("#down-button").click(goBelow);
     $("#left-button").click(goLeft);
@@ -2025,8 +2077,6 @@ const main = async () => {
     $("#create-child-button").click(createChild);
     $("#create-sibling-button").click(createSibling);
     $("#delete-node-button").click(deleteNode);
-
-    generateStorageSpaceEstimate();
 
     let lastUpdate = $("#last-update").text();
     console.warn(lastUpdate);
@@ -2056,7 +2106,7 @@ $(main);
                                         "content": "```\nid: parameters\n```\n\n## Card Parameters\n\nAt the top of a card's markdown, you can add a block of code that looks like this:\n\n    ```\n    id: gork\n    ```\n\nThis can either be YAML or JSON, and it can be used to set parameters that are of interest.\n",
                                         "children": [
                                             {
-                                                "content": "```\nid: toc\ndepth: 0\ntoc: Table of Contents\n```\n\n## Table of Contents\n\nWhile you build your tree, the Table of Contents should fill up with &mdash; well, contents.\n\nCards will only be inserted into the Table of Contents if they have an [id](#identity).\n\nIf a card has a header element, like this card does, the table will use that to guess at the proper depth and title of the Table of Contents entry. Otherwise, the `depth` argument can be used to set the depth of the node, and the `toc` argument can be used to set the title.\n",
+                                                "content": "```\nid: toc\ndepth: 0\ncard-title: Table of Contents\n```\n\n## Table of Contents\n\nWhile you build your tree, the Table of Contents should fill up with &mdash; well, contents.\n\nCards will only be inserted into the Table of Contents if they have an [id](#identity).\n\nIf a card has a header element, like this card does, the table will use that to guess at the proper depth and title of the Table of Contents entry. Otherwise, the `depth` argument can be used to set the depth of the node, and the `card-title` argument can be used to set the title.\n",
                                                 "children": [
                                                     {
                                                         "content": "```\nid: custom\n```\n\n## Inline HTML, Javascript, and CSS\n\nMarkdown is a quite powerful and flexible markup language, and that means that we can write code directly into our markdown and have it work right away.\n\n\nFor some reason \"inline\" is common lingo in programming, probably because of [C/C++](https://en.wikipedia.org/wiki/Inline_function).\n",
