@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -1703,10 +1703,6 @@ const changeNode = debounce(async ({node})=>{
     updateStyleForNode({id: id, html: dirtyHtml});
     updateScriptForNode({id: id, html: dirtyHtml});
 
-    if(data.id != null){
-        window.tree.find(id).data.fakeId = data.id;
-    }
-
     // we need to modify the DOM, so that the user can see their changes
     $(node).html(html);
 
@@ -1729,8 +1725,14 @@ const changeNode = debounce(async ({node})=>{
         setWidth(data.width);
     }
 
-    /* because the root node affects all child nodes, we have to reprocess the tree if the root changes */
-    if(id === "0/0"){
+    // if the ID changed, then so too does the ToC _and_ the current #history element
+    if(data.id !== null && window.tree.find(id).data.fakeId != data.id){
+        window.tree.find(id).data.fakeId = data.id;
+        history.replaceState(null, null, `#${data.id}`);
+        await onTreeChange();
+    }
+    else if(id === "0/0"){
+        /* because the root node affects all child nodes, we have to reprocess the tree if the root changes */
         await onTreeChange();
     }
 
@@ -2017,7 +2019,7 @@ const main = async () => {
 
     if(root != null && root.data != null && root.data.object != null){
         setTitle(root.data.object.title || "CardChapter");
-        setTheme(root.data.object.theme || "default");
+        setTheme(root.data.object.theme || "theme-default");
         setTraversal(root.data.object.traversal || "zigzag");
 
         setHeight(root.data.object.height || 714);
