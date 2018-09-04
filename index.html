@@ -693,8 +693,8 @@
     </style>
 </head>
 <body>
-<script id="storage-id">732945542</script>
-<script id="last-update">2018-08-29T03:11:00.746-07:00</script>
+<script id="storage-id">3097834907</script>
+<script id="last-update">2018-09-04T16:15:37.424-07:00</script>
 <script id="quine">
 // <![CDATA[
 /*
@@ -2155,7 +2155,10 @@ $(main);
                                         ]
                                     },
                                     {
-                                        "content": "```\nid: identity\n```\n\n### The identity parameter\n\n`id` is one of the most important parameters. \n\nEach card has its own ID &mdash; in the case of this card, it's \"identity\".\n\n`id`s should not contain any spaces, only letters, numbers, dashes, and maybe underscores.\n\nThis ID can be used to link to this card specifically within the document. If we construct a link to this page, and include `#identity` at the end of that link, it'll take us here.\n\nIf we don't set this parameter on a card, the card will have an automatically generated identity, but this automatically generated identity *can change if the tree structure changes*.\n\nA card also needs an `id` to participate in the Table of Contents.\n"
+                                        "content": "```\nid: list-of-parameters\n```\n\n## List of Parameters\n\n\n* `id`\n* `title`\n* `card-title`\n* `depth`\n* `traversal`\n* `theme`\n* `class`\n* `image`\n* `parallax`\n"
+                                    },
+                                    {
+                                        "content": "```\nid: identity\n```\n\n### id\n\nThe identity parameter\n\nEach card has its own ID &mdash; in the case of this card, it's \"identity\".\n\n`id`s should not contain any spaces, only letters, numbers, dashes, and maybe underscores.\n\nThis ID can be used to link to this card specifically within the document. If we construct a link to this page, and include `#identity` at the end of that link, it'll take us here.\n\nIf we don't set this parameter on a card, the card will have an automatically generated identity, but this automatically generated identity *can change if the tree structure changes*.\n\nA card also needs an `id` to participate in the Table of Contents.\n"
                                     },
                                     {
                                         "content": "```\nid: class\nclass: dark\n```\n\n\n### The class parameter\n\nAnything passed to the \"class\" parameter will be attached to the card as an extra class.\n\nIn this case, we're passing \"class: dark\", which adds the \"dark\" class to this card, which triggers the following style rules: \n\n```\n        .dark{\n            background-color: black;\n            color: white;\n            font-weight: bold;\n        }\n```\n\n"
