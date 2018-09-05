@@ -795,7 +795,9 @@ let defaultNodeProperties = {};
 
 /* Slugify.js - er, I mean, slugifyjs */
 const slugify = (string) => {
+    string = string.replace(".", "-");
     return window.slugify(string, {remove: /[*+~.()'"!:@]/g, lower: true});
+
 };
 
 /* Debounce: doesn't matter how many times you click, you're only getting one function call */
@@ -998,16 +1000,21 @@ const editPage = () => {
         $(".edit-tools").fadeIn();
 
         let id = $("#center").data("tree-id");
-        setTree({id: id});
 
         window.locked = false;
+
+        setTree({id: id});
     }
     else{
         $("#edit-page-button").removeClass();
         $("#edit-page-button").addClass('hex-btn');
         $(".edit-tools").fadeOut();
 
+        let id = $("#center").data("tree-id");
+
         window.locked = true;
+
+        setTree({id: id});
     }
 };
 
@@ -1413,7 +1420,7 @@ const generateTableOfContents = (tree) => {
             let depth = 5;
             let title = node.data.object.id;
 
-            if(node.data.object.hidden === true || node.data.object.hidden === "true"){
+            if(window.locked && (node.data.object.hidden === true || node.data.object.hidden === "true")){
                 return;
             }
 
