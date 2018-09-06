@@ -2435,28 +2435,34 @@ const setTraversal = (traversal) => {
 const setHeight = (h) => {
     if(h == null){
         HEIGHT = DEFAULT_HEIGHT;
-        $(":root").get(0).style.setProperty('--card-height', `${DEFAULT_HEIGHT}px`);
+        let set_height = Math.min(Math.max(200, parseInt(HEIGHT, 10)), window.innerHeight - 80);
+        $(":root").get(0).style.setProperty('--card-height', `${set_height}px`);
     }
     else{
-        h = Math.min(Math.max(200, parseInt(h, 10)), window.innerHeight - 80);
         HEIGHT = h;
-        $(":root").get(0).style.setProperty('--card-height', `${h}px`);
+        let set_height = Math.min(Math.max(200, parseInt(HEIGHT, 10)), window.innerHeight - 80);
+        $(":root").get(0).style.setProperty('--card-height', `${set_height}px`);
     }
 };
 
 const setWidth = (w) => {
     if(w == null){
         WIDTH = DEFAULT_WIDTH;
-        $(":root").get(0).style.setProperty('--card-width', `${DEFAULT_WIDTH}px`);
+        let set_width = Math.min(Math.max(200, parseInt(WIDTH, 10)), maxWidth);
+
+        $(":root").get(0).style.setProperty('--card-width', `${set_width}px`);
     }
     else {
         let maxWidth = window.innerWidth - 75;
         if(window.innerWidth > 1000){
             maxWidth = window.innerWidth - 600;
         }
-        w = Math.min(Math.max(200, parseInt(w, 10)), maxWidth);
+        if(window.innerWidth > 1200){
+            maxWidth = window.innerWidth - 800;
+        }
         WIDTH = w;
-        $(":root").get(0).style.setProperty('--card-width', `${w}px`);
+        let set_width = Math.min(Math.max(200, parseInt(WIDTH, 10)), maxWidth);
+        $(":root").get(0).style.setProperty('--card-width', `${set_width}px`);
     }
 };
 
