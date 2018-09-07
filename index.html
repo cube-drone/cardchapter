@@ -1843,10 +1843,10 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
     if(saveHistory === true){
         let fakeId = window.tree.find(id).data.fakeId;
         if(fakeId != null){
-            history.pushState(null, null, `#${fakeId}`);
+            history.replaceState(null, null, `#${fakeId}`);
         }
         else{
-            history.pushState(null, null, `#${LZString.compressToBase64(id)}`);
+            history.replaceState(null, null, `#${LZString.compressToBase64(id)}`);
         }
     }
 
