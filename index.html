@@ -114,6 +114,38 @@
             align-items: center;
         }
 
+        #audio{
+            display: none;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            z-index: 15;
+            background-color: #222;
+            padding: 10px;
+        }
+
+        #audio h3{
+            display: block;
+            margin-top: 0;
+            padding-top: 0;
+            float: left;
+            color: lime;
+            font-family: Inconsolata, monospace;
+            width: 30%;
+        }
+
+        #audio audio{
+            display: block;
+            margin-top: -5px;
+            padding-top: 0;
+            float: right;
+            width: 67%;
+            padding-right: 3%;
+        }
+
+
         #left-wall{
             position: absolute;
             left: 0;
@@ -140,7 +172,7 @@
 
         #table-of-contents{
             direction: rtl;
-            height: calc(100% - 160px);
+            height: calc(100% - 251px);
             font-size: 90%;
             text-align: left;
             overflow-y: auto;
@@ -300,7 +332,7 @@
 
         #down-button{
             position: absolute;
-            bottom: 10px;
+            bottom: 60px;
             transform: rotate(180deg);
             background-position: 0px -83px;
         }
@@ -428,13 +460,8 @@
         }
 
         #markdown-editor{
-            height: 100%;
+            height: calc(100% - 50px);
             min-height: 400px;
-        }
-
-        #audio{
-            height: 0%;
-            background-color: pink;
         }
 
         #root-button{
@@ -464,7 +491,7 @@
 
         #create-child-button{
             position: absolute;
-            bottom: 30px;
+            bottom: 70px;
             width: 46px;
             left: calc(50% + 32px);
             visibility: hidden;
@@ -828,6 +855,23 @@ const DEFAULT_WIDTH = WIDTH;
 var HEIGHT = parseInt(window.getComputedStyle(document.documentElement).getPropertyValue(`--card-height`), 10);
 const DEFAULT_HEIGHT = HEIGHT;
 const n = "";
+
+// basically all of the Markdown options make it better
+showdown.setOption("ghCompatibleHeaderId", true);
+showdown.setOption("prefixHeaderId", "content-header-");
+showdown.setOption("parseImgDimensions", true);
+showdown.setOption("simplifiedAutoLink", true);
+showdown.setOption("literalMidWordUnderscores", true);
+showdown.setOption("strikethrough", true);
+showdown.setOption("tables", true);
+showdown.setOption("tablesHeaderId", true);
+showdown.setOption("tasklists", true);
+showdown.setOption("smoothLivePreview", true);
+showdown.setOption("disableForced4SpacesIndentedSublists", true);
+showdown.setOption("encodeEmails", true);
+/*
+*/
+
 const converter = new showdown.Converter();
 
 let defaultNodeProperties = {};
@@ -1060,8 +1104,6 @@ const loadPage = () => {
             <div id="markdown-editor" class="edit-tools">
 
             </div>
-            <div id="audio" class="">
-            </div>
         </div>
 
         <div id="left-button" class="hex-btn" title="left"></div>
@@ -1096,6 +1138,8 @@ const loadPage = () => {
             <div id="below" class="below card">
             </div>
         </div>
+    </div>
+    <div id="audio" class="">
     </div>
 </div>
 `;
@@ -1997,6 +2041,9 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
     if(node.data.object.height != null){
         setHeight(node.data.object.height);
     }
+    if(node.data.object.audio != null){
+        setAudio(node.data.object.audio, node.data.object.type, node.data.object.audioTitle || node.data.object['card-title'] || node.data.object.id);
+    }
 
     // make the rootiest root element uneditable
     if(id == "0"){
@@ -2097,6 +2144,9 @@ const changeNode = debounce(async ({node})=>{
     if(data.width != null){
         setWidth(data.width);
     }
+    if(data.audio != null){
+        setAudio(data.audio, data.type, data.audioTitle || data['card-title'] || data.id);
+    }
 
     // if the ID changed, then so too does the ToC _and_ the current #history element
     /*
@@ -2149,27 +2199,28 @@ const fileToMarkdown = async (file) => {
 
     let width = 0;
     let height = 0;
-    let widthAndHeight = "";
+    let extraParameters = "";
+    let slug = slugify(file.name);
 
     if(file.type.startsWith("image")){
         let deets = await getHeightAndWidth(file);
         width = deets.width;
         height = deets.height;
-        widthAndHeight = `imagewidth: ${width}\nimageheight: ${height}\n`
+        extraParameters += `imagewidth: ${width}\nimageheight: ${height}\n`
         file.width = deets.width;
         file.height = deets.height;
     }
-
-    let slug = slugify(file.name);
+    if(file.type.startsWith("audio")){
+        extraParameters += `audio: ${slug}\n`;
+        extraParameters += `audioTitle: ${file.name}\n`;
+    }
 
     let markdown = "```" + `
 id: ${slug}
 file: ${file.name}
 size: ${file.size}
 type: ${file.type}
-lastModified: ${file.lastModified}
-lastModifiedDate: ${file.lastModifiedDate}
-${widthAndHeight}
+${extraParameters}
 ` + "```";
 
     markdown += "\n";
@@ -2198,6 +2249,9 @@ ${widthAndHeight}
         markdown += `\n\n`;
     }
 
+    if(file.type.startsWith("audio")){
+        markdown += `\n<!-- to load this audio in a card, use \naudio: ${slug}\ntype: ${file.type}\n -->`;
+    }
     if(file.type.startsWith("application/font-woff")){
         markdown += `\n<!-- here's how to use the font: -->\n`;
         markdown += `<div class='${slug} larger'>Hey, this is a sample of the font you just embedded.</div>`
@@ -2218,7 +2272,7 @@ ${widthAndHeight}
         markdown += `\n\n`;
     }
 
-    markdown += "\n\n<a href='--"+slug+"-data-url' title='"+file.name+"'><code>"+ file.name + "</code></a>" + "";
+    markdown += "\n\n`"+ file.name + "`" + "";
 
     console.log(markdown);
 
@@ -2480,12 +2534,12 @@ const setTraversal = (traversal) => {
 const setHeight = (h) => {
     if(h == null){
         HEIGHT = DEFAULT_HEIGHT;
-        let set_height = Math.min(Math.max(200, parseInt(HEIGHT, 10)), window.innerHeight - 80);
+        let set_height = Math.min(Math.max(200, parseInt(HEIGHT, 10)), window.innerHeight - 200);
         $(":root").get(0).style.setProperty('--card-height', `${set_height}px`);
     }
     else{
         HEIGHT = h;
-        let set_height = Math.min(Math.max(200, parseInt(HEIGHT, 10)), window.innerHeight - 80);
+        let set_height = Math.min(Math.max(200, parseInt(HEIGHT, 10)), window.innerHeight - 200);
         $(":root").get(0).style.setProperty('--card-height', `${set_height}px`);
     }
 };
@@ -2508,6 +2562,61 @@ const setWidth = (w) => {
         WIDTH = w;
         let set_width = Math.min(Math.max(200, parseInt(WIDTH, 10)), maxWidth);
         $(":root").get(0).style.setProperty('--card-width', `${set_width}px`);
+    }
+};
+
+const setAudio = (audioUrl, mimeType, title) => {
+
+    console.warn(audioUrl, mimeType);
+
+    if(audioUrl.trim().toLowerCase() === "none"){
+        $("#audio").html(``);
+        $("#audio").fadeOut();
+        $("#audio").data('audioUrl', 'none');
+        return;
+    }
+
+    let audioElement = $("#audio audio").get(0);
+    let isPlaying = audioElement != undefined && !audioElement.paused && audioElement.currentTime > 0;
+
+    // let's assume mpeg
+    if(mimeType == null){
+        mimeType = "audio/mpeg";
+    }
+
+    if(title == null){
+        title = audioUrl;
+    }
+
+    $("#audio h3").html(title);
+    if($("#audio").data('audioUrl') == audioUrl){
+        return;
+    }
+
+    let adjustedAudioUrl = audioUrl;
+    if(window.files != null && window.files[audioUrl] != null){
+        adjustedAudioUrl = window.files[audioUrl].dataUrl;
+    }
+
+    $("#audio").data('audioUrl', audioUrl);
+    if(!$("#audio audio").length){
+        $("#audio").html(`<h3>${title}</h3>\n <audio controls loop><source id="audiosource" src="${adjustedAudioUrl}" type="${mimeType}"></source></audio>`);
+        $("#audio").fadeIn();
+    }
+    else{
+        $("#audiosource").attr('src', adjustedAudioUrl).attr('type', mimeType);
+
+        audioElement = $("#audio audio").get(0);
+
+        audioElement.load();
+
+        if(isPlaying){
+            console.warn("already playing");
+            $("#audio audio").get(0).play();
+        }
+        else{
+            console.warn("not playing");
+        }
     }
 };
 
