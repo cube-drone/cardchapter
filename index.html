@@ -432,6 +432,11 @@
             min-height: 400px;
         }
 
+        #audio{
+            height: 0%;
+            background-color: pink;
+        }
+
         #root-button{
             position: absolute;
             top: 10px;
@@ -1055,6 +1060,8 @@ const loadPage = () => {
             <div id="markdown-editor" class="edit-tools">
 
             </div>
+            <div id="audio" class="">
+            </div>
         </div>
 
         <div id="left-button" class="hex-btn" title="left"></div>
@@ -1252,11 +1259,13 @@ const convertContentIntoHtml = ({content, id, data, files}) => {
     }
 
     const convertPlaceholdersIntoFileData = (content) => {
+        let t0 = performance.now();
         Object.keys(files).forEach((key)=>{
-
             content = content.replace(new RegExp(`--${key}-data-url`, 'gi'), files[key].dataUrl);
         });
 
+        let t1 = performance.now();
+        //console.log(`convertPlaceholdersIntoFileData - ${Math.round(t1-t0)}ms`);
         return content;
     }
 
@@ -1264,11 +1273,18 @@ const convertContentIntoHtml = ({content, id, data, files}) => {
         if(content.indexOf('```') === 0){
             var data = content.slice(3);
             if(data.indexOf('```') > -1){
-                var html = data.slice(data.indexOf('```') + 3);
-                return converter.makeHtml(convertPlaceholdersIntoFileData(html));
+                content = data.slice(data.indexOf('```') + 3);
             }
         }
-        return converter.makeHtml(convertPlaceholdersIntoFileData(content));
+
+        let t0 = performance.now();
+        let html = converter.makeHtml(content);
+        let t1 = performance.now();
+        //console.log(`convert markdown to html - ${Math.round(t1-t0)}ms`);
+
+        html = convertPlaceholdersIntoFileData(html);
+
+        return html;
     }
 
     let extraClasses = "";
@@ -1400,6 +1416,11 @@ const updateFileForNode = ({id, file}) => {
 
     let slug = slugify(file.name);
 
+    if(!file.type.startsWith("image") && !file.type.startsWith("application/woff")){
+        // if it's not an image or a font, we don't need to mount it as a CSS element
+        return;
+    }
+
     // add the dataUrl as a variable attached to root
     let fileStyle = `
             :root{
@@ -1447,8 +1468,10 @@ const updateScriptForNode = ({id, html}) => {
         - create any HTML nodes that need to be created
         - find any special IDs
         - update the table of contents (when that's a thing);
+
+    changedNodeId is an optional argument to indicate that only one node on the tree has changed
 */
-const onTreeChange = async () => {
+const onTreeChange = async (changedNodeId) => {
 
     let t0 = performance.now();
 
@@ -1457,6 +1480,10 @@ const onTreeChange = async () => {
 
     // do a special op on the root node
     let root = tree.children[0];
+
+    if(changedNodeId){
+        console.warn("only changed node: ", changedNodeId);
+    }
 
     defaultNodeProperties = {};
 
@@ -1493,12 +1520,11 @@ const onTreeChange = async () => {
 
     defaultNodeProperties = await generateDefaultPropertiesFromRootNode();
 
-    console.log("Default Properties", defaultNodeProperties);
-
     /*
         We want to get all file records from the tree to populate a list of files.
     */
     const getAllFiles = async (tree) => {
+        let t0 = performance.now();
         let files = {};
         let fileList = [];
         let promises = [];
@@ -1524,6 +1550,8 @@ const onTreeChange = async () => {
             });
 
         return Promise.all(promises).then(()=>{
+            let t1 = performance.now();
+            //console.log(`getAllFiles: ${Math.round(t1 - t0)} ms`);
             return files;
         });;
     };
@@ -1534,31 +1562,48 @@ const onTreeChange = async () => {
 
     tree.traverseDown(function(node){
         let that = this;
-        promises.push(localforage.getItem(node.id)
-            .then((savedContent) => {
-                if(savedContent != null && savedContent !== that.data.content){
-                    that.data.content = savedContent;
-                }
-                let nodeData = convertContentIntoData({content: that.data.content, baseObject: defaultNodeProperties});
-                let nodeHtml = convertContentIntoHtml({id: node.id, content: that.data.content, data: nodeData, files: window.files})
 
-                that.data.object = nodeData;
-                that.data.html = removeScriptAndStyle(nodeHtml);
-                if(that.data.object.id != null){
-                    that.data.fakeId = that.data.object.id;
-                }
+        if(changedNodeId == null || changedNodeId == node.id){
+            let trav0 = 0;
+            promises.push(Promise.resolve().then(()=>{
+                    trav0 = performance.now();
+                    return localforage.getItem(node.id);
+                })
+                .then((savedContent) => {
+                    let trav1 = performance.now();
+                    if(savedContent != null && savedContent !== that.data.content){
+                        that.data.content = savedContent;
+                    }
+                    let nodeData = convertContentIntoData({content: that.data.content, baseObject: defaultNodeProperties});
+                    let trav2 = performance.now();
+                    let nodeHtml = convertContentIntoHtml({id: node.id, content: that.data.content, data: nodeData, files: window.files})
+                    let trav3 = performance.now();
 
-                if(that.data.object.file == null){
-                    promises.push(localforage.setItem(`${node.id}-file`, null));
-                }
+                    that.data.object = nodeData;
+                    that.data.html = removeScriptAndStyle(nodeHtml);
+                    if(that.data.object.id != null){
+                        that.data.fakeId = that.data.object.id;
+                    }
 
-                updateStyleForNode({id: node.id, html: nodeHtml});
-                that.data.script = getScriptFromHtml({id: node.id, html:nodeHtml});
-            })
-            .catch((err)=>{
-                console.error(err);
-                that.data.html = convertContentIntoHtml({id: node.id, content: that.data.content, data: defaultNodeProperties, files: window.files});
-            }));
+                    /* delete the file if it's not in the metadata anymore */
+                    if(that.data.object.file == null){
+                        promises.push(localforage.setItem(`${node.id}-file`, null));
+                    }
+
+                    let trav4 = performance.now();
+                    updateStyleForNode({id: node.id, html: nodeHtml});
+                    let trav5 = performance.now();
+
+                    that.data.script = getScriptFromHtml({id: node.id, html:nodeHtml});
+
+                    //console.log(`storage: ${Math.round(trav1 - trav0)}ms - convert data ${Math.round(trav2 - trav1)}ms - convert HTML ${Math.round(trav3 - trav2)}ms - set HTML ${Math.round(trav4-trav3)}ms - update style nodes ${Math.round(trav5 - trav4)}ms `);
+                    return;
+                })
+                .catch((err)=>{
+                    console.error(err);
+                    that.data.html = convertContentIntoHtml({id: node.id, content: that.data.content, data: defaultNodeProperties, files: window.files});
+                }));
+        }
     });
     return Promise.all(promises)
         .then(async ()=>{
@@ -2058,18 +2103,18 @@ const changeNode = debounce(async ({node})=>{
     if(data.id !== null && window.tree.find(id).data.fakeId != data.id){
         window.tree.find(id).data.fakeId = data.id;
         history.replaceState(null, null, `#${data.id}`);
-        await onTreeChange();
+        await onTreeChange(id);
     }
     else if(id === "0/0"){
         // because the root node affects all child nodes, we have to reprocess the tree if the root changes
-        await onTreeChange();
+        await onTreeChange(id);
     }
     */
 
     // let's test doing this on any change at all
-    await onTreeChange();
+    await onTreeChange(id);
 
-}, 50)
+}, 200)
 
 
 const toDataURL = async (file) => {
@@ -2210,7 +2255,7 @@ const addFileToNode = async (file) => {
     await localforage.setItem(`${id}-file`, serialized);
 
     // this counts as a tree change
-    await onTreeChange();
+    await onTreeChange(id);
 
     setTree({id: id});
 };
