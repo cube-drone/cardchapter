@@ -1022,13 +1022,18 @@ const generateStorageSpaceEstimate = async () => {
     let usage = null;
     let percentage = null;
     if(window.isSecureContext){
-        let estimate = await navigator.storage.estimate();
-        if(estimate != null){
-            quota = estimate.quota;
-            usage = estimate.usage;
-            percentage = Math.ceil((estimate.usage / estimate.quota) * 100);
+        try{
+            let estimate = await navigator.storage.estimate();
+            if(estimate != null){
+                quota = estimate.quota;
+                usage = estimate.usage;
+                percentage = Math.ceil((estimate.usage / estimate.quota) * 100);
 
-            console.log("Quota Percentage: ", quota, usage, usage/quota);
+                console.log("Quota Percentage: ", quota, usage, usage/quota);
+            }
+        }
+        catch(err){
+            return;
         }
     }
     else{
