@@ -2951,7 +2951,7 @@ const main = async () => {
 
             console.log("drop", evt);
             let dt = evt.dataTransfer;
-            let files = ([...dt.files]);
+            let files = Array.from(dt.files);
 
             files.forEach(console.log);
 
