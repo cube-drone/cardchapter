@@ -885,8 +885,8 @@
     </style>
 </head>
 <body>
-<script id="storage-id">3924793732</script>
-<script id="last-update">2018-09-13T20:46:51.804-07:00</script>
+<script id="storage-id">6698886377</script>
+<script id="last-update">2018-09-14T03:23:56.207-07:00</script>
 <script id="quine">
 // <![CDATA[
 /*
@@ -1056,6 +1056,24 @@ const generateStorageSpaceEstimate = async () => {
 
     $("#storage-percentage").html(message);
 }
+
+/*
+    Like localforage.clear(), but doesn't clear out files or children
+*/
+const deleteLocalStorageTree = async () => {
+
+    let keys = await localforage.keys();
+
+    // "child" isn't part of the tree
+    keys = keys.filter(key => key.indexOf("child") === -1);
+
+    // "file" isn't part of the tree
+    keys = keys.filter(key => key.indexOf("file") === -1);
+
+    let promises = keys.map(key => localforage.removeItem(key));
+
+    return Promise.all(promises);
+};
 
 /*
     We start up the app by looking at the actual tree-shaped data within the page
@@ -1603,8 +1621,6 @@ const updateStyleForNode = ({id, html}) => {
 */
 const updateFileForNode = ({id, file}) => {
 
-    console.log(file);
-
     let slug = slugify(file.name);
 
     if(!file.type.startsWith("image") && !file.type.startsWith("application/woff")){
@@ -1662,7 +1678,7 @@ const updateScriptForNode = ({id, html}) => {
 
     changedNodeId is an optional argument to indicate that only one node on the tree has changed
 */
-const onTreeChange = async ({changedNodeId, fromLocalStorage} = {}) => {
+const onTreeChange = async ({changedNodeId, fromLocalStorage, noFileDeletion} = {}) => {
 
     let t0 = performance.now();
 
@@ -1779,8 +1795,9 @@ const onTreeChange = async ({changedNodeId, fromLocalStorage} = {}) => {
                     }
 
                     /* delete the file if it's not in the metadata anymore */
-                    if(that.data.object.file == null){
-                        promises.push(localforage.setItem(`${node.id}-file`, null));
+                    if(that.data.object.file == null && !noFileDeletion){
+                        console.warn("Removing `${node.id}-file`");
+                        promises.push(localforage.removeItem(`${node.id}-file`));
                     }
 
                     let trav4 = performance.now();
@@ -2258,6 +2275,10 @@ const changeNode = debounce(async ({node})=>{
 
     let markdown = scriptToScrupt(window.codeMirror.getValue());
 
+    if(window.tree.find(id) == null){
+        return;
+    }
+
     if(window.tree.find(id).data.content == markdown){
         // no change
         return;
@@ -2353,7 +2374,11 @@ const getHeightAndWidth = async (file) => {
     });
 };
 
-const fileToMarkdown = async (file) => {
+const fileToMarkdown = async (file, type) => {
+
+    if(type == null){
+        type = file.type;
+    }
 
     let width = 0;
     let height = 0;
@@ -2389,7 +2414,7 @@ ${extraParameters}
     markdown += "\n";
 
     // if it's an image, throw in some special image rules
-    if(file.type.startsWith("image")){
+    if(type.startsWith("image")){
         markdown += `\n<!-- here's how to use the image: -->\n`;
         markdown += `<img src='--${slug}-data-url' />`;
         markdown += `\n`
@@ -2411,13 +2436,13 @@ ${extraParameters}
         markdown += `\n\n`;
     }
 
-    if(file.type.startsWith("audio")){
+    if(type.startsWith("audio")){
         markdown += `\n<!-- to load this audio in a card, use \naudio: ${slug}\ntype: ${file.type}\n -->`;
     }
-    if(file.type.startsWith("video")){
+    if(type.startsWith("video")){
         markdown += `\n<!-- to load this video in a card, use \nvideo: ${slug}\n -->`;
     }
-    if(file.type.startsWith("application/font-woff")){
+    if(type.startsWith("application/font-woff")){
         markdown += `\n<!-- here's how to use the font: -->\n`;
         markdown += `<div class='${slug} larger'>Hey, this is a sample of the font you just embedded.</div>`
         markdown += `\n`
@@ -2454,10 +2479,49 @@ const addFileToNode = async (file) => {
 
     let dataUrl = await toDataURL(file);
 
+    // guess file type if it's not included
+    let type = file.type;
+    if(file.type == null || file.type == ""){
+        if(file.name.endsWith("woff")){
+            type = "application/font-woff";
+        }
+        else if(file.name.endsWith("mp3")){
+            type = "audio/mpeg";
+        }
+        else if(file.name.endsWith("ogg")){
+            type = "audio/ogg";
+        }
+        else if(file.name.endsWith("webm")){
+            type = "video/webm";
+        }
+        else if(file.name.endsWith("gif")){
+            type = "image/gif";
+        }
+        else if(file.name.endsWith("jpg")){
+            type = "image/jpeg";
+        }
+        else if(file.name.endsWith("jpeg")){
+            type = "image/jpeg";
+        }
+        else if(file.name.endsWith("png")){
+            type = "image/png";
+        }
+        else if(file.name.endsWith("bmp")){
+            type = "image/bmp";
+        }
+        else if(file.name.endsWith("tif")){
+            type = "image/tiff";
+        }
+        else{
+            console.warn("What type is "+file.name+"????");
+        }
+
+    }
+
     let fileObj = {
         name: file.name,
         size: file.size,
-        type: file.type,
+        type: type,
         lastModified: file.lastModified,
         lastModifiedDate: file.lastModifiedDate,
         dataUrl: dataUrl
@@ -2470,18 +2534,30 @@ const addFileToNode = async (file) => {
 
     let serialized = JSON.stringify(fileObj);
 
-    console.log(file);
-
-    let markdown = await fileToMarkdown(file);
+    let markdown = await fileToMarkdown(file, type);
 
     window.codeMirror.setValue(markdown);
 
     // we also need to create a record for this change in localstorage, so that this change sticks around after a reload
-    await localforage.setItem(`${id}-file`, serialized);
+    try{
+        await localforage.setItem(`${id}-file`, serialized);
+    }
+    catch(err){
+        console.error(err);
+    }
+
+    let checkItem = await localforage.getItem(`${id}-file`);
+
+    if(serialized != checkItem){
+        console.error("Localforage did not store the item we just stashed.");
+    }
+    else{
+        console.log("Localforage has successfully stored:", `${id}-file`, checkItem);
+    }
 
     await changeNode({node: $("#center")});
 
-    await onTreeChange();
+    await onTreeChange({noFileDeletion: true});
 
     setTree({id: id});
 };
@@ -2573,7 +2649,8 @@ const deleteNode = async () => {
         window.tree.find(parentId).appendChildren(sibling, "children");
     });
 
-    await localforage.clear();
+    // await localforage.clear();
+    await deleteLocalStorageTree();
 
     // first we append the original children to the parent
     children.forEach((child)=>{
@@ -2639,7 +2716,8 @@ const createSibling = async () => {
 
     await onTreeChange();
     /* stash the entire state of the tree in localstorage */
-    await localforage.clear();
+    //await localforage.clear();
+    await deleteLocalStorageTree();
     await localforage.setItem("tree", convertTreeBackIntoData(window.tree));
 
     await setTree({id: id});
@@ -2677,7 +2755,8 @@ const createChild = async () => {
     await onTreeChange();
 
     /* stash the entire state of the tree in localstorage */
-    await localforage.clear();
+    //await localforage.clear();
+    await deleteLocalStorageTree();
     await localforage.setItem("tree", convertTreeBackIntoData(window.tree));
 
     await setTree({id: id});
@@ -3104,14 +3183,19 @@ $(main);
                                                                                                                                                                                                                                                                                                                                                                 "content": "```\nid: typewriter-effect\ntitle: Typewriter Effect\n```\n\n### Typewriter Effect\n\n<span id='typed' style=\"width: 100%\">\n</span>\n\n<style>\n\t@@ #typed{\n    \twidth: 100%;\n        font-family: \"VT323\", monospace;\n        font-size: x-large !important;\n        font-weight: bold;\n    }\n</style>\n\n<scrupt>\n\ttypedContent=`Here we are using typed.js to create a typewriter effect using a whole lot of inline javascript^1000 <br/> this is possible because typed.js is embedded in the page`;\n\t\n    // we have to start by destroying any objects created by previous\n    //  \truns of this code\n    if(window.typed != null && window.typed.destroy != null){\n    \twindow.typed.destroy();\n    }\n    \n    // and then we can create our typewriter object\n\twindow.typed = new Typed(\"@@ #typed\", {\n    \tstrings:[typedContent],\n        typeSpeed: 100,\n        fadeOut: true,\n        cursorChar: \"_\",\n        loop: false,\n    });\n</scrupt>\n",
                                                                                                                                                                                                                                                                                                                                                                 "children": [
                                                                                                                                                                                                                                                                                                                                                                     {
-                                                                                                                                                                                                                                                                                                                                                                        "content": "```\nid: embedding-files\n```\n\n## Embedding Files\n\nWhile you're in \"edit\" mode, you can embed an item directly into the CardChapter document by dragging it on to a card.\n\nThis will _overwrite_ the node.\n\nWhen you save the document, the file will be included with the document. \n\nThe embedded card will contain comments indicating how to use the file you've attached.\n\n",
+                                                                                                                                                                                                                                                                                                                                                                        "content": "## New Node",
                                                                                                                                                                                                                                                                                                                                                                         "children": [
                                                                                                                                                                                                                                                                                                                                                                             {
-                                                                                                                                                                                                                                                                                                                                                                                "content": "```\nid: linking-types\n```\n\n### Linking Types\n\nThere are fully three different ways to embed files in a CardChapter document &mdash; \n\n* Relative links, which look like `/gork/florp.gif`\n* Absolute links, which look like `https://sample.org/.../thing.jpg`\n* Embedding the file directly in the document.\n\nRelative links are a bad idea in CardChapter; as soon as someone saves any changes to the CardChapter deck, all of the relative links will break!\n\nAbsolute links are the better option, although they won't work *offline*. If you have large files, loading them as absolute links will keep your users from having to face an enormous download step for the document.\n\nEmbedding the files works best if you want the CardChapter deck to work *entirely offline* &mdash; the deck itself takes up a lot more space, but that's because it contains all of the files it references.",
+                                                                                                                                                                                                                                                                                                                                                                                "content": "```\nid: embedding-files\n```\n\n## Embedding Files\n\nWhile you're in \"edit\" mode, you can embed an item directly into the CardChapter document by dragging it on to a card.\n\nThis will _overwrite_ the node.\n\nWhen you save the document, the file will be included with the document. \n\nThe embedded card will contain comments indicating how to use the file you've attached.\n\n",
                                                                                                                                                                                                                                                                                                                                                                                 "children": [
                                                                                                                                                                                                                                                                                                                                                                                     {
-                                                                                                                                                                                                                                                                                                                                                                                        "content": "```\nid: outstanding\nclass: scroll dark\n```\n\n## Outstanding Bugs & Ideas\n\nyeah, CardChapter is its own bug-tracker, too. 😉\n\n\n* [ ] Need to cook up a way to test this in iOS/safari/mobile safari\n* [ ] audio-title should be renamed audio-title, for consistency.\n* File Embeds\n * [ ] Sometimes when a file is newly-embedded, it's not saved properly in localstorage and won't survive a page refresh.\n * [ ] Sometimes when a a file is newly created, it doesn't get attached to the heirarchy properly and will ONLY survive a page refresh.\n* Scrolly Bois\n * [ ] The \"scroll\" element doesn't work if we're triggering movement with swipes.\n * [ ] Scrolling doesn't work the way it did befo'\n* [ ] Favicon\n*  [ ] It should be possible to save a description and even image for the likes of Twitter pages.\n* Default Themes: \n * [X] Default (Cyan & Black)\n * [ ] Cyan & Magenta Hex Cyberpunk\n * [ ] Chill Beats to Study To (60's, salmon-brown/pink/turquoise green)\n * [ ] Terminal Velocity\n * [ ] A E S T H E T I C\n * [ ] Hearthmagicstone The Gorthering\n * [ ] Skeumorph Notepard\n* [ ] Audio option to set loop to false\n* [ ] Audio option to _attempt_ to set autoplay to true\n* [ ] New buttons:\n * [ ] Print page\n * [ ] Search in page\n * [ ] Upgrade & save\n * [ ] Jump to oldest sibling\n * [ ] Jump to youngest sibling\n * [ ] Jump to last card\n* [ ] Lightbox images\n* [ ] Card-title should override guessed title\n* [ ] Card with no parameters should get default params\n* [ ] Changing root parameters doesn't trigger a whole-page re-flow hard enough.\n\n### Done\n* [X] Lots of completed stuff\n",
-                                                                                                                                                                                                                                                                                                                                                                                        "children": []
+                                                                                                                                                                                                                                                                                                                                                                                        "content": "```\nid: linking-types\n```\n\n### Linking Types\n\nThere are fully three different ways to embed files in a CardChapter document &mdash; \n\n* Relative links, which look like `/gork/florp.gif`\n* Absolute links, which look like `https://sample.org/.../thing.jpg`\n* Embedding the file directly in the document.\n\nRelative links are a bad idea in CardChapter; as soon as someone saves any changes to the CardChapter deck, all of the relative links will break!\n\nAbsolute links are the better option, although they won't work *offline*. If you have large files, loading them as absolute links will keep your users from having to face an enormous download step for the document.\n\nEmbedding the files works best if you want the CardChapter deck to work *entirely offline* &mdash; the deck itself takes up a lot more space, but that's because it contains all of the files it references.",
+                                                                                                                                                                                                                                                                                                                                                                                        "children": [
+                                                                                                                                                                                                                                                                                                                                                                                            {
+                                                                                                                                                                                                                                                                                                                                                                                                "content": "```\nid: outstanding\nclass: scroll dark\n```\n\n## Outstanding Bugs & Ideas\n\nyeah, CardChapter is its own bug-tracker, too. 😉\n\n\n* [ ] Need to cook up a way to test this in iOS/safari/mobile safari\n* Scrolly Bois\n * [ ] The \"scroll\" element doesn't work if we're triggering movement with swipes.\n * [ ] Scrolling doesn't work the way it did befo'\n* [ ] Favicon\n*  [ ] It should be possible to save a description and even image for the likes of Twitter pages.\n* Default Themes: \n * [X] Default (Cyan & Black)\n * [ ] Cyan & Magenta Hex Cyberpunk\n * [ ] Chill Beats to Study To (60's, salmon-brown/pink/turquoise green)\n * [ ] Terminal Velocity\n * [ ] A E S T H E T I C\n * [ ] Hearthmagicstone The Gorthering\n * [ ] Skeumorph Notepard\n* [ ] Audio option to set loop to false\n* [ ] Audio option to _attempt_ to set autoplay to true\n* [ ] New buttons:\n * [ ] Print page\n * [ ] Search in page\n * [ ] Upgrade & save\n * [ ] Jump to oldest sibling\n * [ ] Jump to youngest sibling\n * [ ] Jump to last card\n* [ ] Lightbox images\n* [ ] Card-title should override guessed title\n* [ ] Card with no parameters should get default params\n* [ ] Changing root parameters doesn't trigger a whole-page re-flow hard enough.\n\n### Done\n* [X] audio-title should be renamed audio-title, for consistency.\n* [X] firefox wasn't embedding fonts properly\n* File Embeds\n * [X] Sometimes when a file is newly-embedded, it's not saved properly in localstorage and won't survive a page refresh.\n * [X] Sometimes when a a file is newly created, it doesn't get attached to the heirarchy properly and will ONLY survive a page refresh.\n\n",
+                                                                                                                                                                                                                                                                                                                                                                                                "children": []
+                                                                                                                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                                                                                                                        ]
                                                                                                                                                                                                                                                                                                                                                                                     }
                                                                                                                                                                                                                                                                                                                                                                                 ]
                                                                                                                                                                                                                                                                                                                                                                             }
