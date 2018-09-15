@@ -969,6 +969,11 @@ var HEIGHT = parseInt(window.getComputedStyle(document.documentElement).getPrope
 const DEFAULT_HEIGHT = HEIGHT;
 const n = "";
 
+window.canGoUp = true;
+window.canGoDown = true;
+window.canGoLeft = true;
+window.canGoRight = true;
+
 // basically all of the Markdown options make it better
 showdown.setOption("ghCompatibleHeaderId", true);
 showdown.setOption("prefixHeaderId", "content-header-");
@@ -2161,27 +2166,35 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
 
     // hide any buttons that shouldn't be seen
     if(nodeIsHidden(leftNode)){
+        window.canGoLeft = false;
         $("#left-button").fadeOut();
     }
     else{
+        window.canGoLeft = true;
         $("#left-button").fadeIn();
     }
     if(nodeIsHidden(rightNode)){
+        window.canGoRight = false;
         $("#right-button").fadeOut();
     }
     else{
+        window.canGoRight = true;
         $("#right-button").fadeIn();
     }
     if(nodeIsHidden(aboveNode)){
+        window.canGoUp = false;
         $("#up-button").fadeOut();
     }
     else{
+        window.canGoUp = true;
         $("#up-button").fadeIn();
     }
     if(nodeIsHidden(belowNode)){
+        window.canGoDown = false;
         $("#down-button").fadeOut();
     }
     else{
+        window.canGoDown = true;
         $("#down-button").fadeIn();
     }
 
@@ -2233,6 +2246,18 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
 };
 
 const goDirection = debounce(async ({directionNode, direction, animation=true}) => {
+    if(direction === 'right' && window.canGoRight == false){
+        return;
+    }
+    if(direction === 'left' && window.canGoLeft == false){
+        return;
+    }
+    if(direction === 'top' && window.canGoUp == false){
+        return;
+    }
+    if(direction === 'bottom' && window.canGoDown == false){
+        return;
+    }
     if(animation)
     {
         let animationDirection = {};
