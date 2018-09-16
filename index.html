@@ -147,12 +147,13 @@
             font-family: 'Averia Serif';
             margin: 0;
             padding: 0;
-            overscroll-behavior-y: none;
+            overscroll-behavior: none;
         }
 
         html, body, #wall{
             height: 100%;
             overflow: hidden;
+            overscroll-behavior: none;
         }
 
         body{
@@ -3098,10 +3099,11 @@ const main = async () => {
     $("#right-button").click(goRight);
 
     $("#cardzone").touchwipe({
-        wipeLeft: ()=>goRight({scroll: true}),
-        wipeRight: ()=>goLeft({scroll: true}),
-        wipeUp: ()=>goAbove({scroll: true}),
-        wipeDown: ()=>goBelow({scroll: true}),
+        wipeLeft: ()=> goRight({scroll: true}),
+        wipeRight: ()=> goLeft({scroll: true}),
+        wipeUp: ()=> goAbove({scroll: true}),
+        wipeDown: ()=> goBelow({scroll: true}),
+        preventDefaultEvents: false,
     });
 
     $("#cardzone").get(0).onwheel = debounce((evt) => {
