@@ -147,6 +147,7 @@
             font-family: 'Averia Serif';
             margin: 0;
             padding: 0;
+            overscroll-behavior-y: none;
         }
 
         html, body, #wall{
@@ -427,7 +428,7 @@
             background-position: 0px -165px;
         }
 
-        @media only screen and (min-width: 1000px) {
+        @media only screen and (min-width: 1200px) {
             #left-wall{
                 visibility: visible;
             }
@@ -616,7 +617,7 @@
             background-position: 233px -165px;
         }
 
-        @media only screen and (min-width: 1000px) {
+        @media only screen and (min-width: 1200px) {
             #revert-button{
                 right: calc(50% - calc(calc(var(--card-width) / 2) + 14px));
                 visibility: visible;
@@ -769,6 +770,7 @@
         #center .scroll{
             overflow-y: scroll;
             display: block;
+            overscroll-behavior: contain;
         }
 
         .scroll-top{
