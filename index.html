@@ -3103,11 +3103,22 @@ const main = async () => {
     });
 
     $("#cardzone").get(0).onwheel = debounce((evt) => {
-        if(evt.deltaY > 0){
-            goBelow({scroll: true});
+
+        if(Math.abs(evt.deltaX) > Math.abs(evt.deltaY)){
+            if(evt.deltaX > 0){
+                goLeft({scroll: true});
+            }
+            if(evt.deltaY < 0){
+                goRight({scroll: true});
+            }
         }
-        if(evt.deltaY < 0){
-            goAbove({scroll: true});
+        if(Math.abs(evt.deltaY) > Math.abs(evt.deltaX)){
+            if(evt.deltaY > 0){
+                goBelow({scroll: true});
+            }
+            if(evt.deltaY < 0){
+                goAbove({scroll: true});
+            }
         }
         console.log(evt);
     }, 300);
