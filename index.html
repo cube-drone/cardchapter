@@ -360,7 +360,7 @@
 
         }
 
-        .above, .left, .right, .below{
+        .above, .left, .right, .below, .above-left, .above-right, .below-left, .below-right{
             background-color: gray;
             z-index: 6;
         }
@@ -1286,15 +1286,23 @@ const loadPage = () => {
             </div>
 
             <div id="card-container">
-                <div id="center" class="center card">
+                <div id="above-left" class="above left card">
                 </div>
                 <div id="above" class="above card">
                 </div>
+                <div id="above-right" class="above right card">
+                </div>
                 <div id="left" class="left card">
+                </div>
+                <div id="center" class="center card">
                 </div>
                 <div id="right" class="right card">
                 </div>
+                <div id="below-left" class="below left card">
+                </div>
                 <div id="below" class="below card">
+                </div>
+                <div id="below-right" class="below right card">
                 </div>
             </div>
         </div>
@@ -2153,11 +2161,32 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
     let previousId = idStack.join("/") + "/" + previousValue;
     let childId = id + "/" + childNumber;
 
+    // older child is older than your current child
+    let olderChildId = id + "/" + (childNumber - 1);
+    // younger child is younger than your current child
+    let youngerChildId = id + "/" + (childNumber + 1);
+
+    // older uncle is the older sibling of your parent
+    let parentNumber = parseInt(idStack.pop(), 10);
+    let olderUncleId = idStack.join("/") + "/" + (parentNumber - 1);
+
+    // younger aunt is the younger sibling of your parent
+    let youngerAuntId = idStack.join("/") + "/" + (parentNumber + 1);
+
+    console.log(parentId);
+    console.log(olderUncleId);
+    console.log(youngerAuntId);
+
     let node = tree.find(id);
     let leftNode = tree.find(previousId);
     let rightNode = tree.find(nextId);
     let aboveNode = tree.find(parentId);
     let belowNode = tree.find(childId);
+
+    let aboveLeftNode = tree.find(olderUncleId);
+    let aboveRightNode = tree.find(youngerAuntId);
+    let belowLeftNode = tree.find(olderChildId);
+    let belowRightNode = tree.find(youngerChildId);
 
     function setNode(domObject, node, id){
         if (!nodeIsHidden(node)){
@@ -2183,6 +2212,11 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
     setNode($("#right"), rightNode, nextId);
     setNode($("#above"), aboveNode, parentId);
     setNode($("#below"), belowNode, childId);
+
+    setNode($("#above-left"), aboveLeftNode, olderUncleId);
+    setNode($("#above-right"), aboveRightNode, youngerAuntId);
+    setNode($("#below-left"), belowLeftNode, olderChildId);
+    setNode($("#below-right"), belowRightNode, youngerChildId);
 
     // hide any buttons that shouldn't be seen
     if(nodeIsHidden(leftNode)){
@@ -2295,7 +2329,7 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
     $("#center").removeClass('scroll-top');
     $("#center").removeClass('scroll-bottom');
 
-    if(node.data.object.class.indexOf("scroll") != -1){
+    if(node.data.object.class != null && node.data.object.class.indexOf("scroll") != -1){
         checkScroll();
     }
 
