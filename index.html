@@ -763,6 +763,14 @@
             display: block;
         }
 
+        .scroll-top{
+            border-top: 5px solid blue;
+        }
+
+        .scroll-bottom{
+            border-bottom: 5px solid blue;
+        }
+
         .scroll .card-center{
             padding-top: 50px;
             padding-bottom: 50px;
@@ -775,7 +783,7 @@
 
         .scroll .card-center::after {
             content: "\00A0";
-            padding-bottom: 50px;
+            padding-bottom: 400px;
         }
 
         .parallax{
@@ -973,6 +981,9 @@ window.canGoUp = true;
 window.canGoDown = true;
 window.canGoLeft = true;
 window.canGoRight = true;
+
+window.canScrollUp = true;
+window.canScrollDown = true;
 
 // basically all of the Markdown options make it better
 showdown.setOption("ghCompatibleHeaderId", true);
@@ -2173,6 +2184,7 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
         window.canGoLeft = true;
         $("#left-button").fadeIn();
     }
+
     if(nodeIsHidden(rightNode)){
         window.canGoRight = false;
         $("#right-button").fadeOut();
@@ -2181,6 +2193,7 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
         window.canGoRight = true;
         $("#right-button").fadeIn();
     }
+
     if(nodeIsHidden(aboveNode)){
         window.canGoUp = false;
         $("#up-button").fadeOut();
@@ -2189,6 +2202,7 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
         window.canGoUp = true;
         $("#up-button").fadeIn();
     }
+
     if(nodeIsHidden(belowNode)){
         window.canGoDown = false;
         $("#down-button").fadeOut();
@@ -2241,11 +2255,51 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
         window.codeMirror.setOption('readOnly', false);
     }
 
+    window.canScrollUp = true;
+    window.canScrollDown = true;
+
+    const checkScroll = debounce(() => {
+        let scroll = $('#center .card-content').scrollTop();
+        let bottomScroll = scroll + $('#center .card-content').height();
+        let scrollHeight = $("#center .card-content").get(0).scrollHeight;
+
+        if(scroll === 0 && !nodeIsHidden(aboveNode)){
+            window.canScrollUp = true;
+            $("#center").addClass('scroll-top');
+        }
+        if(scroll > 0){
+            window.canScrollUp = false;
+            $("#center").removeClass('scroll-top');
+        }
+
+        if(bottomScroll >= scrollHeight && !nodeIsHidden(belowNode)){
+            window.canScrollDown = true;
+            $("#center").addClass('scroll-bottom');
+        }
+        else{
+            window.canScrollDown = false;
+            $("#center").removeClass('scroll-bottom');
+        }
+    }, 50);
+
+    $("#center .card-content").scroll(checkScroll);
+    $("#center").removeClass('scroll-top');
+    $("#center").removeClass('scroll-bottom');
+
+    if(node.data.object.class.indexOf("scroll") != -1){
+        checkScroll();
+    }
 
     return;
 };
 
-const goDirection = debounce(async ({directionNode, direction, animation=true}) => {
+const goDirection = debounce(async ({directionNode, direction, animation=true, scroll=false}) => {
+    if(direction === 'top' && scroll == true && window.canScrollUp == false){
+        return;
+    }
+    if(direction === 'bottom' && scroll == true && window.canScrollDown == false){
+        return;
+    }
     if(direction === 'right' && window.canGoRight == false){
         return;
     }
@@ -2288,10 +2342,10 @@ const goDirection = debounce(async ({directionNode, direction, animation=true}) 
     }
 }, WAIT_TO_SWITCH+10);
 
-const goRight = ({animation=true} = {}) => {return goDirection({directionNode: $("#right"), direction: "right", animation: animation})};
-const goLeft = ({animation=true} = {}) => {return goDirection({directionNode: $("#left"), direction: "left", animation: animation})};
-const goAbove = ({animation=true} = {}) => {return goDirection({directionNode: $("#above"), direction: "top", animation: animation})};
-const goBelow = ({animation=true} = {}) => {return goDirection({directionNode: $("#below"), direction: "bottom", animation: animation})};
+const goRight = ({animation=true, scroll=false} = {}) => {return goDirection({directionNode: $("#right"), direction: "right", animation: animation, scroll: scroll})};
+const goLeft = ({animation=true, scroll=false} = {}) => {return goDirection({directionNode: $("#left"), direction: "left", animation: animation, scroll: scroll})};
+const goAbove = ({animation=true, scroll=false} = {}) => {return goDirection({directionNode: $("#above"), direction: "top", animation: animation, scroll: scroll})};
+const goBelow = ({animation=true, scroll=false} = {}) => {return goDirection({directionNode: $("#below"), direction: "bottom", animation: animation, scroll: scroll})};
 
 
 /* this is called when the markdown is changed in any way */
@@ -2999,11 +3053,21 @@ const main = async () => {
     $("#right-button").click(goRight);
 
     $(document).touchwipe({
-        wipeLeft: goRight,
-        wipeRight: goLeft,
-        wipeUp: goAbove,
-        wipeDown: goBelow,
+        wipeLeft: ()=>goRight({scroll: true}),
+        wipeRight: ()=>goLeft({scroll: true}),
+        wipeUp: ()=>goAbove({scroll: true}),
+        wipeDown: ()=>goBelow({scroll: true}),
     });
+
+    $(document).get(0).onwheel = debounce((evt) => {
+        if(evt.deltaY > 0){
+            goBelow({scroll: true});
+        }
+        if(evt.deltaY < 0){
+            goAbove({scroll: true});
+        }
+        console.log(evt);
+    }, 300);
 
     $("#save-button").click(saveQuine);
     $("#new-button").click(saveNew);
@@ -3021,10 +3085,6 @@ const main = async () => {
     $("#last-updated").html(`Last updated: ${luxon.DateTime.fromISO(lastUpdate).toFormat('ff')}`);
 
     window.onresize = () => {setHeight(HEIGHT); setWidth(WIDTH)};
-
-    window.onscroll = (evt) => {
-        console.log(evt);
-    };
 
     $("#center").on("dragover", (evt)=>{
         evt.preventDefault();
