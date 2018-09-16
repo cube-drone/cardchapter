@@ -181,6 +181,14 @@
             align-items: center;
         }
 
+        #cardzone{
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         #audio{
             display: none;
             position: absolute;
@@ -758,7 +766,7 @@
             font-size: larger;
         }
 
-        .scroll{
+        #center .scroll{
             overflow-y: scroll;
             display: block;
         }
@@ -1256,37 +1264,38 @@ const loadPage = () => {
 
             </div>
         </div>
+        <div id="cardzone">
+            <div id="left-button" class="hex-btn" title="left"></div>
+            <div id="right-button" class="hex-btn"></div>
+            <div id="down-button" class="hex-btn"></div>
+            <div id="up-button" class="hex-btn" title="up"></div>
 
-        <div id="left-button" class="hex-btn" title="left"></div>
-        <div id="right-button" class="hex-btn"></div>
-        <div id="down-button" class="hex-btn"></div>
-        <div id="up-button" class="hex-btn" title="up"></div>
+            <div id="root-button" class="hex-btn-small" title="root"></div>
+            <div id="revert-button" class="edit-tools hex-btn-small" title="Undo"></div>
+            <div id="create-child-button" class="edit-tools hex-btn-small" title="Create Child"></div>
+            <div id="create-sibling-button" class="edit-tools hex-btn-small" title="Create Sibling"></div>
+            <div id="delete-node-button" class="edit-tools hex-btn-small" title="Delete This Node"></div>
 
-        <div id="root-button" class="hex-btn-small" title="root"></div>
-        <div id="revert-button" class="edit-tools hex-btn-small" title="Undo"></div>
-        <div id="create-child-button" class="edit-tools hex-btn-small" title="Create Child"></div>
-        <div id="create-sibling-button" class="edit-tools hex-btn-small" title="Create Sibling"></div>
-        <div id="delete-node-button" class="edit-tools hex-btn-small" title="Delete This Node"></div>
-
-        <div id="loading" class="card">
-            <div class="spin-container">
-                <div class="spinner">
-                    <div class="double-bounce1"></div>
-                    <div class="double-bounce2"></div>
+            <div id="loading" class="card">
+                <div class="spin-container">
+                    <div class="spinner">
+                        <div class="double-bounce1"></div>
+                        <div class="double-bounce2"></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div id="card-container">
-            <div id="center" class="center card">
-            </div>
-            <div id="above" class="above card">
-            </div>
-            <div id="left" class="left card">
-            </div>
-            <div id="right" class="right card">
-            </div>
-            <div id="below" class="below card">
+            <div id="card-container">
+                <div id="center" class="center card">
+                </div>
+                <div id="above" class="above card">
+                </div>
+                <div id="left" class="left card">
+                </div>
+                <div id="right" class="right card">
+                </div>
+                <div id="below" class="below card">
+                </div>
             </div>
         </div>
     </div>
@@ -3052,14 +3061,14 @@ const main = async () => {
     $("#left-button").click(goLeft);
     $("#right-button").click(goRight);
 
-    $(document).touchwipe({
+    $("#cardzone").touchwipe({
         wipeLeft: ()=>goRight({scroll: true}),
         wipeRight: ()=>goLeft({scroll: true}),
         wipeUp: ()=>goAbove({scroll: true}),
         wipeDown: ()=>goBelow({scroll: true}),
     });
 
-    $(document).get(0).onwheel = debounce((evt) => {
+    $("#cardzone").get(0).onwheel = debounce((evt) => {
         if(evt.deltaY > 0){
             goBelow({scroll: true});
         }
