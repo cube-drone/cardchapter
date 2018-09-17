@@ -812,20 +812,6 @@
             display: block;
         }
 
-        .video-shield{
-            position: absolute;
-            height: 33%;
-            top: 0;
-            width: 100%;
-        }
-
-        .video-shield-2{
-            position: absolute;
-            height: 27%;
-            top: 60%;
-            width: 100%;
-        }
-
         .top-left .card-center{
             position: absolute;
             width: calc(var(--card-width) / 2);
@@ -1569,11 +1555,6 @@ const convertContentIntoHtml = ({content, id, data, files}) => {
         }
 
         html = `
-<div class='video-shield'>
-    <!-- the video blocks swipes so we put some swipable objects over the video-->
-</div>
-<div class='video-shield-2'>
-</div>
 <video controls
        src="${video_src}"
        width="${w}"
