@@ -1173,7 +1173,7 @@ const scruptToScript = (markdown) => {
     Causing page load to fail dramatically.
     This simple, butt-ugly solution is simply to chop up the tags so that they don't actually close anything.
 */
-const renderPage = ({style, storageId, script, data, title}) => {
+const renderPage = ({style, storageId, script, data, title, description, author, favicon}) => {
 
     //we're updating it now!
     let lastUpdate = luxon.DateTime.local().toString();
@@ -1182,6 +1182,9 @@ const renderPage = ({style, storageId, script, data, title}) => {
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="description" content="${description}">
+    <meta name="author" content="${author}">
+    <link rel="icon" href="${favicon}" type="image/png">
     <title>${title}</${n}title>
     <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7, user-scalable=no">
     <style id="style">${style}</${n}style>
@@ -1216,7 +1219,15 @@ const saveQuine = (newFile) => {
             data = convertTreeBackIntoData(window.tree);
         }
 
-        return renderPage({style:style, storageId: storageId, script:script, data:data, title:window.title || "CardChapter"});
+        return renderPage({
+            style:style,
+            storageId: storageId,
+            script:script,
+            data:data,
+            title:window.title || "CardChapter",
+            author:window.author || "",
+            description:window.description || "",
+            favicon:window.favicon || ""});
     };
 
     const blob = new Blob([quine(newFile)], {type: "text/html;charset=utf-8"})
@@ -2275,6 +2286,15 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
     if(node.data.object.title != null){
         setTitle(node.data.object.title);
     }
+    if(node.data.object.favicon != null){
+        setFavicon(node.data.object.favicon);
+    }
+    if(node.data.object.author != null){
+        setAuthor(node.data.object.author);
+    }
+    if(node.data.object.description != null){
+        setDescription(node.data.object.description);
+    }
     if(node.data.object.theme != null){
         setTheme(node.data.object.theme);
     }
@@ -2433,6 +2453,15 @@ const changeNode = debounce(async ({node})=>{
 
     if(data.title != null){
         setTitle(data.title);
+    }
+    if(data.favicon != null){
+        setFavicon(data.favicon);
+    }
+    if(data.author != null){
+        setAuthor(data.author);
+    }
+    if(data.description != null){
+        setDescription(data.description);
     }
     if(data.theme != null){
         setTheme(data.theme);
@@ -2890,6 +2919,18 @@ const createChild = async () => {
 const setTitle = (title) => {
     window.title = title;
     $("title").html(title);
+};
+
+const setAuthor = (author) => {
+    window.author = author;
+};
+
+const setDescription = (description) => {
+    winodw.description = description;
+};
+
+const setFavicon = (favicon) => {
+    window.favicon = favicon;
 };
 
 const setTheme = (theme) => {
