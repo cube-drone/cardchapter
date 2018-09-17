@@ -1009,8 +1009,6 @@ showdown.setOption("tasklists", true);
 showdown.setOption("smoothLivePreview", true);
 showdown.setOption("disableForced4SpacesIndentedSublists", true);
 showdown.setOption("encodeEmails", true);
-/*
-*/
 
 const converter = new showdown.Converter();
 
@@ -1175,7 +1173,7 @@ const scruptToScript = (markdown) => {
     Causing page load to fail dramatically.
     This simple, butt-ugly solution is simply to chop up the tags so that they don't actually close anything.
 */
-const renderPage = ({style, storageId, script, data}) => {
+const renderPage = ({style, storageId, script, data, title}) => {
 
     //we're updating it now!
     let lastUpdate = luxon.DateTime.local().toString();
@@ -1184,7 +1182,7 @@ const renderPage = ({style, storageId, script, data}) => {
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>cardchapter</${n}title>
+    <title>${title}</${n}title>
     <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7, user-scalable=no">
     <style id="style">${style}</${n}style>
 </${n}head>
@@ -1218,7 +1216,7 @@ const saveQuine = (newFile) => {
             data = convertTreeBackIntoData(window.tree);
         }
 
-        return renderPage({style:style, storageId: storageId, script:script, data:data});
+        return renderPage({style:style, storageId: storageId, script:script, data:data, title:window.title || "CardChapter"});
     };
 
     const blob = new Blob([quine(newFile)], {type: "text/html;charset=utf-8"})
