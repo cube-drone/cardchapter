@@ -1557,8 +1557,8 @@ const convertContentIntoHtml = ({content, id, data, files}) => {
         html = `
 <video controls
        src="${video_src}"
-       width="${w}"
-       height="${h}">
+       width="${w-100}"
+       height="${h-100}">
     Sorry, your browser doesn't support embedded videos.
 </video>
 `;
