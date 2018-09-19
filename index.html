@@ -250,6 +250,16 @@
             font-family: Inconsolata, monospace;
         }
 
+        #extra-nav, #extra-nav ul{
+            padding: 0;
+            margin: 0;
+        }
+
+        #extra-nav ul li{
+            margin-left: 20px;
+            display: inline;
+        }
+
         #table-of-contents{
             direction: rtl;
             height: calc(100% - 251px);
@@ -909,6 +919,7 @@
 <script id="storage-id">5059297866</script>
 <script id="last-update">2018-09-17T12:36:10.385-07:00</script>
 <script id="quine">
+<!-- HOLY HECK WE ARE PLAYING A DANGEROUS GAME HERE -->
 // <![CDATA[
 /*
     CardChapter
@@ -1243,6 +1254,75 @@ const saveQuine = (newFile) => {
 };
 
 /*
+    This saves a copy of the page but with the most recent code downlerderified from
+    https://cardchapter.com; which should update the document to use the most recent version
+    of the code.
+*/
+const updateCode = async () => {
+
+    const getFreshCopy = async () => {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "https://cardchapter.com/index.html",
+                success: (data)=>{
+                    resolve(data);
+                },
+                failure: (err)=>{
+                    console.error(err);
+                    reject(err);
+                },
+            });
+        });
+    };
+
+    let freshCopy = await getFreshCopy();
+
+    let quineStart = freshCopy.indexOf(`<${n}!-- HOLY HECK WE ARE PLAYING A DANGEROUS GAME HERE -->`);
+    let quineSlice = freshCopy.slice(quineStart, quineStart.length);
+
+    let quineEnd = quineSlice.indexOf(`<${n}!-- I THINK IT'LL BE OKAY, THOUGH-->`);
+    let scripty = quineSlice.slice(0, quineEnd);
+
+    console.log(scripty);
+
+    freshCopy = $("<div>" + freshCopy + "</div>");
+
+    // the quine function produces the actual copy
+    const quine = () => {
+        let style = freshCopy.find("#style").html();
+        let script = scripty;
+        let style = "";
+        let script = "";
+        let storageId = Math.round(Math.random()*10000000000);
+
+        let data = `[
+            {
+                "content": "### New Node",
+                "children": []
+            }
+        ]`;
+        data = convertTreeBackIntoData(window.tree);
+
+        return renderPage({
+            style:style,
+            storageId: storageId,
+            script:script,
+            data:data,
+            title:window.title || "CardChapter",
+            author:window.author || "",
+            description:window.description || "",
+            favicon:window.favicon || ""});
+    };
+
+    const blob = new Blob([quine()], {type: "text/html;charset=utf-8"})
+    let title = `${window.title}.html`;
+    saveAs(blob, title);
+
+};
+
+
+
+/*
     This creates a copy of this page but with totally blank data.
 
     You know, a "new page".
@@ -1270,6 +1350,12 @@ const loadPage = () => {
             <div id="extra-info">
                 <div id="storage-percentage" class="edit-tools">0%</div>
                 <div id="last-updated"> Last updated 30 days ago</div>
+                <nav id="extra-nav">
+                    <ul>
+                        <li>print</li>
+                        <li>upgrade</li>
+                    </ul>
+                </nav>
             </div>
 
             <nav id="table-of-contents">
@@ -3234,6 +3320,7 @@ const main = async () => {
 $(main);
 
 // ]]>
+<!-- I THINK IT'LL BE OKAY, THOUGH-->
 </script>
 <script id="data">[
     {
