@@ -250,6 +250,12 @@
             font-family: Inconsolata, monospace;
         }
 
+        #extra-nav{
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+        }
+
         #extra-nav, #extra-nav ul{
             padding: 0;
             margin: 0;
@@ -258,6 +264,12 @@
         #extra-nav ul li{
             margin-left: 20px;
             display: inline;
+            font-size: x-small;
+        }
+
+        #extra-nav .upgrade{
+            cursor: pointer;
+            color: gray;
         }
 
         #table-of-contents{
@@ -1277,13 +1289,13 @@ const updateCode = async () => {
 
     let freshCopy = await getFreshCopy();
 
-    let quineStart = freshCopy.indexOf(`<${n}!-- HOLY HECK WE ARE PLAYING A DANGEROUS GAME HERE -->`);
-    let quineSlice = freshCopy.slice(quineStart, quineStart.length);
+    let quineStart = freshCopy.indexOf("<!-- HOLY HECK WE ARE"+" PLAYING A DANGEROUS GAME HERE -->");
+    let quineSlice = freshCopy.slice(quineStart, freshCopy.length);
 
-    let quineEnd = quineSlice.indexOf(`<${n}!-- I THINK IT'LL BE OKAY, THOUGH-->`);
+    let quineEnd = quineSlice.indexOf("<!-- I THINK IT'LL BE"+" OKAY, THOUGH-->");
     let scripty = quineSlice.slice(0, quineEnd);
 
-    console.log(scripty);
+    scripty = scripty + "\n<!-- I THINK IT'LL BE"+" OKAY, THOUGH-->";
 
     freshCopy = $("<div>" + freshCopy + "</div>");
 
@@ -1348,13 +1360,13 @@ const loadPage = () => {
             <div id="extra-info">
                 <div id="storage-percentage" class="edit-tools">0%</div>
                 <div id="last-updated"> Last updated 30 days ago</div>
-                <nav id="extra-nav">
-                    <ul>
-                        <li>print</li>
-                        <li>upgrade</li>
-                    </ul>
-                </nav>
             </div>
+
+            <nav id="extra-nav">
+                <ul>
+                    <li class='upgrade'>upgrade to most recent version of code and save</li>
+                </ul>
+            </nav>
 
             <nav id="table-of-contents">
             </nav>
@@ -3258,6 +3270,8 @@ const main = async () => {
     $("#new-button").click(saveNew);
     $("#revert-all-button").click(revertAll);
     $("#edit-page-button").click(editPage);
+
+    $(".upgrade").click(updateCode);
 
     $("#root-button").click(()=>{ setTree({id:"0/0"}) });
     $("#revert-button").click(revertNode);
