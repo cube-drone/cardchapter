@@ -1363,6 +1363,7 @@ const loadPage = () => {
             <div id="extra-info">
                 <div id="storage-percentage" class="edit-tools">0%</div>
                 <div id="last-updated"> Last updated 30 days ago</div>
+                <input id="search" placeholder="search" type="text" />
             </div>
 
             <nav id="extra-nav">
@@ -2156,6 +2157,10 @@ const generateTableOfContents = (tree) => {
     $("#table-of-contents").html("");
     $("#table-of-contents").append(`<ul>${list}</ul>`);
     $("#table-of-contents").append(`<br/><br/><br/><br/>`);
+};
+
+const search = () => {
+    console.log($("#search").val());
 };
 
 /*
@@ -3299,6 +3304,9 @@ const main = async () => {
     $("#last-updated").html(`Last updated: ${luxon.DateTime.fromISO(lastUpdate).toFormat('ff')}`);
 
     window.onresize = () => {setHeight(HEIGHT); setWidth(WIDTH)};
+
+    $("#search").on("change", search);
+    $("#search").on("keyUp", search);
 
     $("#center").on("dragover", (evt)=>{
         evt.preventDefault();
