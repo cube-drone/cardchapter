@@ -819,6 +819,7 @@
                 linear-gradient(0deg, transparent 5em, rgba(255,0,0,.05) 0, transparent 5.1em),
                 linear-gradient(rgba(0,0,255,.1) 1px, transparent 0);
               background-size: 100% 2em;
+              box-shadow: 10px 10px;
         }
 
         .theme-home #left-wall{
@@ -3016,6 +3017,7 @@ const addFileToNode = async (file) => {
     // we also need to create a record for this change in localstorage, so that this change sticks around after a reload
     try{
         await localforage.setItem(`${id}-file`, serialized);
+        await localforage.setItem(`${id}`, markdown);
     }
     catch(err){
         console.error(err);
