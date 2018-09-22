@@ -1740,24 +1740,24 @@ const loadPage = () => {
     <div id="boundary">
         <div id="left-wall">
             <nav id="control-panel">
-                <div id="edit-page-button" class="hex-btn" title="Edit Page"></div>
+                <div id="edit-page-button" class="hex-btn" title="Toggle Tools"></div>
                 <div id="new-button" class="edit-tools hex-btn" title="New File"></div>
                 <div id="save-button" class="edit-tools hex-btn" title="Save As"></div>
                 <div id="revert-all-button" class="edit-tools hex-btn" title="Revert All Changes"></div>
             </nav>
-            <div id="extra-info">
+            <div id="extra-info" class="edit-tools">
                 <div id="storage-percentage" class="edit-tools">0%</div>
                 <div id="last-updated"> Last updated 30 days ago</div>
                 <input id="search" placeholder="search" type="text" />
             </div>
 
-            <nav id="extra-nav">
+            <nav id="extra-nav" class="edit-tools">
                 <ul>
                     <li class='upgrade'>upgrade to most recent version of code and save</li>
                 </ul>
             </nav>
 
-            <nav id="table-of-contents">
+            <nav id="table-of-contents" class="edit-tools">
             </nav>
         </div>
         <div id="right-wall">
