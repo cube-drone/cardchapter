@@ -3231,11 +3231,25 @@ const addFileToNode = async (file) => {
         console.log("Localforage has successfully stored:", `${id}-file`, checkItem);
     }
 
+    window.tree.find(id).data.content = markdown;
+
+    console.warn("1");
+    console.warn(window.tree.find(id).data.content);
+
     await changeNode({node: $("#center")});
+
+    console.warn("2");
+    console.warn(window.tree.find(id).data.content);
 
     await onTreeChange({noFileDeletion: true});
 
+    console.warn("3");
+    console.warn(window.tree.find(id).data.content);
+
     setTree({id: id});
+
+    console.warn("4");
+    console.warn(window.tree.find(id).data.content);
 };
 
 const revertNode = async () => {
