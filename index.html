@@ -2334,11 +2334,13 @@ const onTreeChange = async ({changedNodeId, fromLocalStorage, noFileDeletion} = 
                     }
 
                     /* delete the file if it's not in the metadata anymore */
+                    /*
                     if(that.data.object.file == null && !noFileDeletion){
                         // we should see a lot of this in the logs, on account of most nodes don't have attached files
                         console.log(`Removing ${node.id}-file`);
                         promises.push(localforage.removeItem(`${node.id}-file`));
                     }
+                    */
 
                     let trav4 = performance.now();
                     updateStyleForNode({id: node.id, html: nodeHtml});
