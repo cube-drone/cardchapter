@@ -3721,7 +3721,9 @@ const main = async () => {
 
         let scroll = false;
 
-        let pathSet = new Set(evt.path.map(x => x.id));
+        let path = evt.path || (evt.composedPath && evt.composedPath());
+
+        let pathSet = new Set(path.map(x => x.id));
         if(pathSet.has("center")){
             scroll = true;
         }
