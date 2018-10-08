@@ -210,6 +210,8 @@
 
         #boundary{
             display: flex;
+            width: 100%;
+            height: 100%;
             justify-content: center;
             align-items: center;
         }
@@ -3715,21 +3717,29 @@ const main = async () => {
     });
 
     $("#cardzone").get(0).onwheel = debounce((evt) => {
+        console.log(evt);
+
+        let scroll = false;
+
+        let pathSet = new Set(evt.path.map(x => x.id));
+        if(pathSet.has("center")){
+            scroll = true;
+        }
 
         if(Math.abs(evt.deltaX) > Math.abs(evt.deltaY)){
             if(evt.deltaX > 0){
-                goLeft({scroll: true});
+                goLeft({scroll: scroll});
             }
             if(evt.deltaY < 0){
-                goRight({scroll: true});
+                goRight({scroll: scroll});
             }
         }
         if(Math.abs(evt.deltaY) > Math.abs(evt.deltaX)){
             if(evt.deltaY > 0){
-                goBelow({scroll: true});
+                goBelow({scroll: scroll});
             }
             if(evt.deltaY < 0){
-                goAbove({scroll: true});
+                goAbove({scroll: scroll});
             }
         }
         console.log(evt);
