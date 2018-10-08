@@ -420,6 +420,12 @@
             height: var(--card-height);
         }
 
+        #bottom-half-container{
+            position: relative;
+            width: var(--card-width);
+            height: var(--card-height);
+        }
+
         .card img{
             max-width: 100%;
             max-height: 100%;
@@ -1792,17 +1798,19 @@ const loadPage = () => {
                 </div>
                 <div id="above-right" class="above right card">
                 </div>
-                <div id="left" class="left card">
+                <div id="bottom-half-container">
+                    <div id="left" class="left card">
+                    </div>
+                    <div id="center" class="center card">
+                    </div>
+                    <div id="right" class="right card">
+                    </div>
+                    <div id="below-left" class="below left card">
+                    </div>
+                    <div id="below" class="below card">
+                    </div>
+                    <div id="below-right" class="below right card">
                 </div>
-                <div id="center" class="center card">
-                </div>
-                <div id="right" class="right card">
-                </div>
-                <div id="below-left" class="below left card">
-                </div>
-                <div id="below" class="below card">
-                </div>
-                <div id="below-right" class="below right card">
                 </div>
             </div>
         </div>
@@ -2902,27 +2910,45 @@ const goDirection = debounce(async ({directionNode, direction, animation=true, s
     if(animation)
     {
         let animationDirection = {};
-        if(direction === 'right'){
-            animationDirection = {right: `${WIDTH+(XPAD/2)}px`};
-        }
-        if(direction === 'left'){
-            animationDirection = {left: `${WIDTH+(XPAD/2)}px`};
-        }
-        if(direction === 'top'){
-            animationDirection = {top: `${HEIGHT+(YPAD/2)}px`};
-        }
-        if(direction === 'bottom'){
-            animationDirection = {bottom: `${HEIGHT+(YPAD/2)}px`};
-        }
 
-        $("#card-container").animate(animationDirection, {duration: DURATION, easing: EASING, complete: function(){
-            setTimeout(function(){
-                var id = directionNode.data("tree-id");
-                setTree({id: id});
+        if(direction === 'right' || direction === 'left'){
+            if(direction === 'right'){
+                animationDirection = {right: `${WIDTH+(XPAD/2)}px`};
+            }
+            if(direction === 'left'){
+                animationDirection = {left: `${WIDTH+(XPAD/2)}px`};
+            }
 
-                $("#card-container").removeAttr('style');
-            }, WAIT_TO_SWITCH);
-        }});
+            $("#bottom-half-container").animate(animationDirection, {duration: DURATION, easing: EASING, complete: function(){
+
+                setTimeout(function(){
+                    var id = directionNode.data("tree-id");
+                    setTree({id: id});
+
+                    $("#bottom-half-container").removeAttr('style');
+
+                }, WAIT_TO_SWITCH);
+
+            }});
+
+        }
+        else{
+            if(direction === 'top'){
+                animationDirection = {top: `${HEIGHT+(YPAD/2)}px`};
+            }
+            if(direction === 'bottom'){
+                animationDirection = {bottom: `${HEIGHT+(YPAD/2)}px`};
+            }
+
+            $("#card-container").animate(animationDirection, {duration: DURATION, easing: EASING, complete: function(){
+                setTimeout(function(){
+                    var id = directionNode.data("tree-id");
+                    setTree({id: id});
+
+                    $("#card-container").removeAttr('style');
+                }, WAIT_TO_SWITCH);
+            }});
+        }
     }
     else{
         await setTree({id:directionNode.data("tree-id")});
