@@ -1327,6 +1327,12 @@ var luxon=function(e){'use strict';function t(e){return'undefined'==typeof e}fun
 !function(e,t){function i(e,t){return(65535&e)*t+(((e>>>16)*t&65535)<<16)}function f(e,t){return e<<t|e>>>32-t}function l(e){return e=i(e^e>>>16,2246822507),(e=i(e^=e>>>13,3266489909))^e>>>16}function s(e,t){e=[e[0]>>>16,65535&e[0],e[1]>>>16,65535&e[1]],t=[t[0]>>>16,65535&t[0],t[1]>>>16,65535&t[1]];var r=[0,0,0,0];return r[3]+=e[3]+t[3],r[2]+=r[3]>>>16,r[3]&=65535,r[2]+=e[2]+t[2],r[1]+=r[2]>>>16,r[2]&=65535,r[1]+=e[1]+t[1],r[0]+=r[1]>>>16,r[1]&=65535,r[0]+=e[0]+t[0],r[0]&=65535,[r[0]<<16|r[1],r[2]<<16|r[3]]}function u(e,t){e=[e[0]>>>16,65535&e[0],e[1]>>>16,65535&e[1]],t=[t[0]>>>16,65535&t[0],t[1]>>>16,65535&t[1]];var r=[0,0,0,0];return r[3]+=e[3]*t[3],r[2]+=r[3]>>>16,r[3]&=65535,r[2]+=e[2]*t[3],r[1]+=r[2]>>>16,r[2]&=65535,r[2]+=e[3]*t[2],r[1]+=r[2]>>>16,r[2]&=65535,r[1]+=e[1]*t[3],r[0]+=r[1]>>>16,r[1]&=65535,r[1]+=e[2]*t[2],r[0]+=r[1]>>>16,r[1]&=65535,r[1]+=e[3]*t[1],r[0]+=r[1]>>>16,r[1]&=65535,r[0]+=e[0]*t[3]+e[1]*t[2]+e[2]*t[1]+e[3]*t[0],r[0]&=65535,[r[0]<<16|r[1],r[2]<<16|r[3]]}function g(e,t){return 32===(t%=64)?[e[1],e[0]]:t<32?[e[0]<<t|e[1]>>>32-t,e[1]<<t|e[0]>>>32-t]:(t-=32,[e[1]<<t|e[0]>>>32-t,e[0]<<t|e[1]>>>32-t])}function m(e,t){return 0===(t%=64)?e:t<32?[e[0]<<t|e[1]>>>32-t,e[1]<<t]:[e[1]<<t-32,0]}function x(e,t){return[e[0]^t[0],e[1]^t[1]]}function p(e){return x(e=u(e=x(e=u(e=x(e,[0,e[0]>>>1]),[4283543511,3981806797]),[0,e[0]>>>1]),[3301882366,444984403]),[0,e[0]>>>1])}var r={version:"2.1.2",x86:{},x64:{}};r.x86.hash32=function(e,t){for(var r=(e=e||"").length%4,c=e.length-r,a=t||0,o=0,h=0;h<c;h+=4)a=i(a=f(a^=o=i(o=f(o=i(o=255&e.charCodeAt(h)|(255&e.charCodeAt(h+1))<<8|(255&e.charCodeAt(h+2))<<16|(255&e.charCodeAt(h+3))<<24,3432918353),15),461845907),13),5)+3864292196;switch(o=0,r){case 3:o^=(255&e.charCodeAt(h+2))<<16;case 2:o^=(255&e.charCodeAt(h+1))<<8;case 1:a^=o=i(o=f(o=i(o^=255&e.charCodeAt(h),3432918353),15),461845907)}return(a=l(a^=e.length))>>>0},r.x86.hash128=function(e,t){t=t||0;for(var r=(e=e||"").length%16,c=e.length-r,a=t,o=t,h=t,d=t,n=0,C=0,A=0,s=0,u=0;u<c;u+=16)n=255&e.charCodeAt(u)|(255&e.charCodeAt(u+1))<<8|(255&e.charCodeAt(u+2))<<16|(255&e.charCodeAt(u+3))<<24,C=255&e.charCodeAt(u+4)|(255&e.charCodeAt(u+5))<<8|(255&e.charCodeAt(u+6))<<16|(255&e.charCodeAt(u+7))<<24,A=255&e.charCodeAt(u+8)|(255&e.charCodeAt(u+9))<<8|(255&e.charCodeAt(u+10))<<16|(255&e.charCodeAt(u+11))<<24,s=255&e.charCodeAt(u+12)|(255&e.charCodeAt(u+13))<<8|(255&e.charCodeAt(u+14))<<16|(255&e.charCodeAt(u+15))<<24,a=f(a^=n=i(n=f(n=i(n,597399067),15),2869860233),19),a=i(a+=o,5)+1444728091,o=f(o^=C=i(C=f(C=i(C,2869860233),16),951274213),17),o=i(o+=h,5)+197830471,h=f(h^=A=i(A=f(A=i(A,951274213),17),2716044179),15),h=i(h+=d,5)+2530024501,d=f(d^=s=i(s=f(s=i(s,2716044179),18),597399067),13),d=i(d+=a,5)+850148119;switch(s=A=C=n=0,r){case 15:s^=e.charCodeAt(u+14)<<16;case 14:s^=e.charCodeAt(u+13)<<8;case 13:d^=s=i(s=f(s=i(s^=e.charCodeAt(u+12),2716044179),18),597399067);case 12:A^=e.charCodeAt(u+11)<<24;case 11:A^=e.charCodeAt(u+10)<<16;case 10:A^=e.charCodeAt(u+9)<<8;case 9:h^=A=i(A=f(A=i(A^=e.charCodeAt(u+8),951274213),17),2716044179);case 8:C^=e.charCodeAt(u+7)<<24;case 7:C^=e.charCodeAt(u+6)<<16;case 6:C^=e.charCodeAt(u+5)<<8;case 5:o^=C=i(C=f(C=i(C^=e.charCodeAt(u+4),2869860233),16),951274213);case 4:n^=e.charCodeAt(u+3)<<24;case 3:n^=e.charCodeAt(u+2)<<16;case 2:n^=e.charCodeAt(u+1)<<8;case 1:a^=n=i(n=f(n=i(n^=e.charCodeAt(u),597399067),15),2869860233)}return a=(a^=e.length)+(o^=e.length)+(h^=e.length),o+=a+=d^=e.length,h+=a,d+=a,a=l(a),a+=o=l(o),a+=h=l(h),o+=a+=d=l(d),h+=a,d+=a,("00000000"+(a>>>0).toString(16)).slice(-8)+("00000000"+(o>>>0).toString(16)).slice(-8)+("00000000"+(h>>>0).toString(16)).slice(-8)+("00000000"+(d>>>0).toString(16)).slice(-8)},r.x64.hash128=function(e,t){t=t||0;for(var r=(e=e||"").length%16,c=e.length-r,a=[0,t],o=[0,t],h=[0,0],d=[0,0],n=[2277735313,289559509],C=[1291169091,658871167],A=0;A<c;A+=16)h=[255&e.charCodeAt(A+4)|(255&e.charCodeAt(A+5))<<8|(255&e.charCodeAt(A+6))<<16|(255&e.charCodeAt(A+7))<<24,255&e.charCodeAt(A)|(255&e.charCodeAt(A+1))<<8|(255&e.charCodeAt(A+2))<<16|(255&e.charCodeAt(A+3))<<24],d=[255&e.charCodeAt(A+12)|(255&e.charCodeAt(A+13))<<8|(255&e.charCodeAt(A+14))<<16|(255&e.charCodeAt(A+15))<<24,255&e.charCodeAt(A+8)|(255&e.charCodeAt(A+9))<<8|(255&e.charCodeAt(A+10))<<16|(255&e.charCodeAt(A+11))<<24],a=s(u(a=s(a=g(a=x(a,h=u(h=g(h=u(h,n),31),C)),27),o),[0,5]),[0,1390208809]),o=s(u(o=s(o=g(o=x(o,d=u(d=g(d=u(d,C),33),n)),31),a),[0,5]),[0,944331445]);switch(h=[0,0],d=[0,0],r){case 15:d=x(d,m([0,e.charCodeAt(A+14)],48));case 14:d=x(d,m([0,e.charCodeAt(A+13)],40));case 13:d=x(d,m([0,e.charCodeAt(A+12)],32));case 12:d=x(d,m([0,e.charCodeAt(A+11)],24));case 11:d=x(d,m([0,e.charCodeAt(A+10)],16));case 10:d=x(d,m([0,e.charCodeAt(A+9)],8));case 9:o=x(o,d=u(d=g(d=u(d=x(d,[0,e.charCodeAt(A+8)]),C),33),n));case 8:h=x(h,m([0,e.charCodeAt(A+7)],56));case 7:h=x(h,m([0,e.charCodeAt(A+6)],48));case 6:h=x(h,m([0,e.charCodeAt(A+5)],40));case 5:h=x(h,m([0,e.charCodeAt(A+4)],32));case 4:h=x(h,m([0,e.charCodeAt(A+3)],24));case 3:h=x(h,m([0,e.charCodeAt(A+2)],16));case 2:h=x(h,m([0,e.charCodeAt(A+1)],8));case 1:a=x(a,h=u(h=g(h=u(h=x(h,[0,e.charCodeAt(A)]),n),31),C))}return a=x(a,[0,e.length]),o=s(o=x(o,[0,e.length]),a=s(a,o)),a=p(a),o=s(o=p(o),a=s(a,o)),("00000000"+(a[0]>>>0).toString(16)).slice(-8)+("00000000"+(a[1]>>>0).toString(16)).slice(-8)+("00000000"+(o[0]>>>0).toString(16)).slice(-8)+("00000000"+(o[1]>>>0).toString(16)).slice(-8)},"undefined"!=typeof exports?("undefined"!=typeof module&&module.exports&&(exports=module.exports=r),exports.murmurHash3=r):"function"==typeof define&&define.amd?define([],function(){return r}):(r._murmurHash3=e.murmurHash3,r.noConflict=function(){return e.murmurHash3=r._murmurHash3,r._murmurHash3=t,r.noConflict=t,r},e.murmurHash3=r)}(this);
 
 
+
+
+
+
+
+
 /*
 START OF CODE
 */
@@ -1904,6 +1910,39 @@ const convertContentIntoData = ({content, baseObject}) => {
 };
 
 /*
+    We want to lazy-load images and video.
+    A lazy way to do this is to convert <img> tags to <omg> tags when we render the Markdown
+    and <video> tags to <bideo> tags when we render the Markdown,
+    and then convert them back to img and video tags when we put them on the page.
+*/
+const hideImageAndVideoTags = (html) => {
+    if(html == null){
+        return null;
+    }
+    let returnHtml = html;
+    returnHtml = returnHtml.replace(/<[\w\s]*\/[\w\s]*img[\w\s]*>/gi, `</omg>`).replace(/<[\w\s]*img[\w\s]*>/gi, `<omg>`);
+    returnHtml = returnHtml.replace(/<[\w\s]*\/[\w\s]*audio[\w\s]*>/gi, `</rodeo>`).replace(/<[\w\s]*audio[\w\s]*>/gi, `<rodeo>`);
+    returnHtml = returnHtml.replace(/<[\w\s]*\/[\w\s]*video[\w\s]*>/gi, `</bideo>`).replace(/<[\w\s]*video[\w\s]*>/gi, `<bideo>`);
+    return returnHtml;
+};
+
+const showImageAndVideoTags = (html) => {
+    if(html == null){
+        return null;
+    }
+    let returnHtml = html;
+    if(typeof(html) !== "string"){
+        returnHtml = html.innerHTML;
+    }
+    returnHtml = returnHtml.replace(/<[\w\s]*\/[\w\s]*omg[\w\s]*>/gi, `</img>`).replace(/<[\w\s]*omg[\w\s]*>/gi, `<img>`);
+    returnHtml = returnHtml.replace(/<[\w\s]*\/[\w\s]*rodeo[\w\s]*>/gi, `</audio>`).replace(/<[\w\s]*rodeo[\w\s]*>/gi, `<audio>`);
+    returnHtml = returnHtml.replace(/<[\w\s]*\/[\w\s]*bideo[\w\s]*>/gi, `</video>`).replace(/<[\w\s]*bideo[\w\s]*>/gi, `<video>`);
+    return returnHtml;
+};
+
+
+
+/*
     Given a block of markdown, render it into a card;
 
     content - the markdown
@@ -1951,6 +1990,8 @@ const convertContentIntoHtml = ({content, id, data, files}) => {
         let html = converter.makeHtml(content);
         let t1 = performance.now();
         //console.log(`convert markdown to html - ${Math.round(t1-t0)}ms`);
+
+        html = hideImageAndVideoTags(html);
 
         html = convertPlaceholdersIntoFileData(html);
 
@@ -2671,7 +2712,7 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
         if (!nodeIsHidden(node)){
             //console.info("SETTING NODE", id);
 
-            $(domObject).html(node.data.html);
+            $(domObject).html(showImageAndVideoTags(node.data.html));
             $(domObject).data("tree-id", id);
             $(domObject).fadeIn();
 
@@ -2931,7 +2972,7 @@ const changeNode = debounce(async ({node})=>{
     updateScriptForNode({id: id, html: dirtyHtml});
 
     // we need to modify the DOM, so that the user can see their changes
-    $(node).html(html);
+    $(node).html(showImageAndVideoTags(html));
 
     // we also need to create a record for this change in localstorage, so that this change sticks around after a reload
     await localforage.setItem(id, markdown);
@@ -3226,7 +3267,7 @@ const revertNode = async () => {
             window.tree.find(id).data.content = altTree.find(originalId).data.content;
             window.tree.find(id).data.html = altTree.find(originalId).data.html;
 
-            $("#center").html(altTree.find(originalId).data.html);
+            $("#center").html(showImageAndVideoTags(altTree.find(originalId).data.html));
             window.codeMirror.setValue(scruptToScript(altTree.find(originalId).data.content));
         }
 
