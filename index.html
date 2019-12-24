@@ -1932,7 +1932,7 @@ const showImageAndVideoTags = (html) => {
     }
     let returnHtml = html;
     if(typeof(html) !== "string"){
-        returnHtml = html.innerHTML;
+    	returnHtml = $(html)[0].outerHTML;
     }
     returnHtml = returnHtml.replace(/<[\w\s]*\/[\w\s]*omg[\w\s]*>/gi, `</img>`).replace(/<[\w\s]*omg[\w\s]*>/gi, `<img>`);
     returnHtml = returnHtml.replace(/<[\w\s]*\/[\w\s]*rodeo[\w\s]*>/gi, `</audio>`).replace(/<[\w\s]*rodeo[\w\s]*>/gi, `<audio>`);
