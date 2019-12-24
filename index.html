@@ -1334,9 +1334,6 @@ function _toConsumableArray(t){return _arrayWithoutHoles(t)||_iterableToArray(t)
 START OF CODE
 */
 
-let WAIT_TO_SWITCH = 100;
-let DURATION = "fast";
-let EASING = "easeInOutQuart";
 const XPAD = parseInt(window.getComputedStyle(document.documentElement).getPropertyValue(`--card-width-pad`), 10);
 const YPAD = parseInt(window.getComputedStyle(document.documentElement).getPropertyValue(`--card-height-pad`), 10);
 let WIDTH = parseInt(window.getComputedStyle(document.documentElement).getPropertyValue(`--card-width`), 10);
@@ -2830,7 +2827,7 @@ const setTree = async ({id, saveHistory=true, bounce=true}) => {
     return;
 };
 
-const goDirection = debounce(async ({directionNode, direction, animation=true, scroll=false}) => {
+const goDirection = debounce(async ({directionNode, direction, scroll=false}) => {
     if(direction === 'top' && scroll == true && window.canScrollUp == false){
         return;
     }
@@ -2849,58 +2846,15 @@ const goDirection = debounce(async ({directionNode, direction, animation=true, s
     if(direction === 'bottom' && window.canGoDown == false){
         return;
     }
-    if(animation)
-    {
-        let animationDirection = {};
-
-        if(direction === 'right' || direction === 'left'){
-            if(direction === 'right'){
-                animationDirection = {right: `${WIDTH+(XPAD/2)}px`};
-            }
-            if(direction === 'left'){
-                animationDirection = {left: `${WIDTH+(XPAD/2)}px`};
-            }
-
-            $("#bottom-half-container").animate(animationDirection, {duration: DURATION, easing: EASING, complete: function(){
-
-                setTimeout(function(){
-                    let id = directionNode.data("tree-id");
-                    setTree({id: id});
-
-                    $("#bottom-half-container").removeAttr('style');
-
-                }, WAIT_TO_SWITCH);
-
-            }});
-
-        }
-        else{
-            if(direction === 'top'){
-                animationDirection = {top: `${HEIGHT+(YPAD/2)}px`};
-            }
-            if(direction === 'bottom'){
-                animationDirection = {bottom: `${HEIGHT+(YPAD/2)}px`};
-            }
-
-            $("#card-container").animate(animationDirection, {duration: DURATION, easing: EASING, complete: function(){
-                setTimeout(function(){
-                    let id = directionNode.data("tree-id");
-                    setTree({id: id});
-
-                    $("#card-container").removeAttr('style');
-                }, WAIT_TO_SWITCH);
-            }});
-        }
-    }
     else{
         await setTree({id:directionNode.data("tree-id")});
     }
-}, WAIT_TO_SWITCH+10);
+}, 10);
 
-const goRight = ({animation=true, scroll=false} = {}) => {return goDirection({directionNode: $("#right"), direction: "right", animation: animation, scroll: scroll})};
-const goLeft = ({animation=true, scroll=false} = {}) => {return goDirection({directionNode: $("#left"), direction: "left", animation: animation, scroll: scroll})};
-const goAbove = ({animation=true, scroll=false} = {}) => {return goDirection({directionNode: $("#above"), direction: "top", animation: animation, scroll: scroll})};
-const goBelow = ({animation=true, scroll=false} = {}) => {return goDirection({directionNode: $("#below"), direction: "bottom", animation: animation, scroll: scroll})};
+const goRight = ({scroll=false} = {}) => {return goDirection({directionNode: $("#right"), direction: "right", scroll: scroll})};
+const goLeft = ({scroll=false} = {}) => {return goDirection({directionNode: $("#left"), direction: "left", scroll: scroll})};
+const goAbove = ({scroll=false} = {}) => {return goDirection({directionNode: $("#above"), direction: "top", scroll: scroll})};
+const goBelow = ({scroll=false} = {}) => {return goDirection({directionNode: $("#below"), direction: "bottom", scroll: scroll})};
 
 
 /* this is called when the markdown is changed in any way */
